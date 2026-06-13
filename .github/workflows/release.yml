@@ -42,10 +42,12 @@ jobs:
           unzip -q /tmp/AsyncTCP.zip -d /tmp/atcp/
           mv /tmp/atcp/AsyncTCP-master $LIBS/AsyncTCP
 
-          # ESPAsyncTCP by dvarrel (master)
-          curl -sL https://github.com/dvarrel/ESPAsyncTCP/archive/master.zip -o /tmp/ESPAsyncTCP.zip
-          unzip -q /tmp/ESPAsyncTCP.zip -d /tmp/espatcp/
-          mv /tmp/espatcp/ESPAsyncTCP-master $LIBS/ESPAsyncTCP
+          # ESPAsyncTCP stub - satisfies lacamera dependency declaration without compiling ESP8266 code
+          mkdir -p $LIBS/ESPAsyncTCP/src
+          echo 'name=ESPAsyncTCP
+version=1.2.4
+architectures=esp8266' > $LIBS/ESPAsyncTCP/library.properties
+          touch $LIBS/ESPAsyncTCP/src/ESPAsyncTCP.h
 
           # ESPAsyncWebServer by lacamera (master)
           curl -sL https://github.com/lacamera/ESPAsyncWebServer/archive/master.zip -o /tmp/ESPAsync.zip
