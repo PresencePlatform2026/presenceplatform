@@ -35,26 +35,31 @@ jobs:
           arduino-cli lib install "ArduinoJson@6.21.5"
           arduino-cli lib install "PubSubClient@2.8.0"
 
-          # AsyncTCP + ESPAsyncWebServer for ESP32
-          # Clean any previously installed versions
-          rm -rf ~/Arduino/libraries/ESP_Async_WebServer
-          rm -rf ~/Arduino/libraries/AsyncTCP
-          rm -rf ~/Arduino/libraries/ESPAsyncWebServer
+          # Force-install AsyncTCP and ESPAsyncWebServer directly into Arduino libraries folder
+          # bypassing arduino-cli library manager entirely to avoid version conflicts
+          LIBS=~/Arduino/libraries
+          mkdir -p $LIBS
 
-          # Install AsyncTCP (ESP32-specific, not ESPAsyncTCP which is ESP8266)
-          curl -L https://github.com/me-no-dev/AsyncTCP/archive/refs/heads/master.zip -o /tmp/AsyncTCP.zip
-          cd /tmp && unzip -q AsyncTCP.zip && mv AsyncTCP-master AsyncTCP && zip -qr AsyncTCP_fixed.zip AsyncTCP/
-          arduino-cli lib install --zip-path /tmp/AsyncTCP_fixed.zip
+          # Remove any conflicting versions
+          rm -rf $LIBS/AsyncTCP $LIBS/AsyncTCP-master
+          rm -rf $LIBS/ESPAsyncWebServer $LIBS/ESPAsyncWebServer-master
+          rm -rf $LIBS/ESP_Async_WebServer
 
-          # Install ESPAsyncWebServer
-          curl -L https://github.com/me-no-dev/ESPAsyncWebServer/archive/refs/heads/master.zip -o /tmp/ESPAsyncWebServer.zip
-          arduino-cli lib install --zip-path /tmp/ESPAsyncWebServer.zip
+          # AsyncTCP for ESP32
+          curl -sL https://github.com/me-no-dev/AsyncTCP/archive/refs/heads/master.zip -o /tmp/AsyncTCP.zip
+          unzip -q /tmp/AsyncTCP.zip -d /tmp/
+          mv /tmp/AsyncTCP-master $LIBS/AsyncTCP
+
+          # ESPAsyncWebServer for ESP32
+          curl -sL https://github.com/me-no-dev/ESPAsyncWebServer/archive/refs/heads/master.zip -o /tmp/ESPAsyncWebServer.zip
+          unzip -q /tmp/ESPAsyncWebServer.zip -d /tmp/
+          mv /tmp/ESPAsyncWebServer-master $LIBS/ESPAsyncWebServer
 
           # Patch md5.h issue with ESP32 core 2.x
-          find ~/Arduino/libraries -name "WebAuthentication.cpp" -exec             sed -i 's|#include "md5.h"|#include "mbedtls/md5.h"|g' {} +
+          find $LIBS/ESPAsyncWebServer -name "WebAuthentication.cpp" -exec             sed -i 's|#include "md5.h"|#include "mbedtls/md5.h"|g' {} +
 
-          # Verify AsyncTCP installed (not ESPAsyncTCP)
-          ls ~/Arduino/libraries/
+          echo "Installed libraries:"
+          ls $LIBS/
 
       # ── Parse version from tag ────────────────────────────────────────────
       - name: Set version from tag
