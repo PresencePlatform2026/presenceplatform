@@ -42,8 +42,7 @@ jobs:
           arduino-cli lib install --zip-path /tmp/ESPAsyncWebServer.zip
           
           # Patch md5.h issue in ESPAsyncWebServer with ESP32 core 2.x
-          WEBSERVER_PATH=$(arduino-cli lib list | grep ESPAsyncWebServer | awk '{print $NF}')
-          find ~/Arduino/libraries/ESPAsyncWebServer* -name "WebAuthentication.cpp" -exec             sed -i "s|#include "md5.h"|#include "mbedtls/md5.h"|g" {} \;
+          find ~/Arduino/libraries -name "WebAuthentication.cpp" -exec             sed -i 's|#include "md5.h"|#include "mbedtls/md5.h"|g' {} +
 
       # ── Parse version from tag ────────────────────────────────────────────
       - name: Set version from tag
