@@ -73,6 +73,8 @@ jobs:
             --fqbn esp32:esp32:esp32:FlashSize=4M,PartitionScheme=min_spiffs \
             --export-binaries \
             --build-property "build.extra_flags=-DFIRMWARE_VERSION=\"${{ steps.version.outputs.version }}\"" \
+            --library ~/Arduino/libraries/AsyncTCP \
+            --library ~/Arduino/libraries/ESP_Async_WebServer \
             firmware/PresencePlatform/
           
           # Copy the firmware binary to a predictable name
