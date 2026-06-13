@@ -47,13 +47,13 @@ jobs:
 
           # AsyncTCP for ESP32
           curl -sL https://github.com/ESP32Async/AsyncTCP/archive/refs/heads/master.zip -o /tmp/AsyncTCP.zip
-          unzip -q /tmp/AsyncTCP.zip -d /tmp/
-          mv /tmp/AsyncTCP-master $LIBS/AsyncTCP
+          unzip -q /tmp/AsyncTCP.zip -d /tmp/asynctcp_extract/
+          mv /tmp/asynctcp_extract/$(ls /tmp/asynctcp_extract/) $LIBS/AsyncTCP
 
           # ESPAsyncWebServer for ESP32
           curl -sL https://github.com/ESP32Async/ESPAsyncWebServer/archive/refs/heads/master.zip -o /tmp/ESPAsyncWebServer.zip
-          unzip -q /tmp/ESPAsyncWebServer.zip -d /tmp/
-          mv /tmp/ESPAsyncWebServer-master $LIBS/ESPAsyncWebServer
+          unzip -q /tmp/ESPAsyncWebServer.zip -d /tmp/espasync_extract/
+          mv /tmp/espasync_extract/$(ls /tmp/espasync_extract/) $LIBS/ESPAsyncWebServer
 
 
           echo "Installed libraries:"
