@@ -34,15 +34,21 @@ jobs:
           arduino-cli lib install "ArduinoJson@6.21.5"
           arduino-cli lib install "PubSubClient@2.8.0"
 
-          # Copy vendored libraries from repo (exact versions used locally)
           LIBS=~/Arduino/libraries
-          mkdir -p $LIBS
+
+          # Force remove any auto-installed async libraries
+          rm -rf $LIBS/ESPAsyncWebServer $LIBS/ESP_Async_WebServer
+          rm -rf $LIBS/AsyncTCP $LIBS/ESPAsyncTCP
+
+          # Copy vendored libraries AFTER all arduino-cli installs
           cp -r firmware/libraries/AsyncTCP $LIBS/AsyncTCP
           cp -r firmware/libraries/ESPAsyncWebServer $LIBS/ESPAsyncWebServer
 
-          # Verify the ESP32 check is present in the vendored header
-          echo "=== ESPAsyncWebServer.h lines 20-35 ==="
-          sed -n '20,35p' $LIBS/ESPAsyncWebServer/src/ESPAsyncWebServer.h
+          # Verify correct files are in place
+          echo "=== AsyncWebSocket.h line 20 ==="
+          sed -n '20p' $LIBS/ESPAsyncWebServer/src/AsyncWebSocket.h
+          echo "=== ESPAsyncWebServer.h line 23 ==="
+          sed -n '23p' $LIBS/ESPAsyncWebServer/src/ESPAsyncWebServer.h
 
           echo "Installed libraries:"
           ls $LIBS/
