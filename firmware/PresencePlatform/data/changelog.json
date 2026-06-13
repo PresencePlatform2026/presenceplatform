@@ -1,0 +1,1188 @@
+[
+  {
+    "version": "2.5.0",
+    "date": "2026-06-12",
+    "entries": [
+      {
+        "type": "added",
+        "text": "Auto-update window \u2014 updates only install during configured hours (default 2:00 AM \u2013 4:00 AM)"
+      },
+      {
+        "type": "added",
+        "text": "Device states persisted to NVS before update reboot \u2014 devices restore as HOME/AWAY instead of UNKNOWN after reboot"
+      },
+      {
+        "type": "added",
+        "text": "Pre-update TCP notification sent to Control4 driver before rebooting for update"
+      },
+      {
+        "type": "added",
+        "text": "Control4 driver freezes state changes for 3 minutes after receiving update notification \u2014 prevents false automations during reboot"
+      },
+      {
+        "type": "changed",
+        "text": "Update window configurable in Settings: start hour, end hour (24h format)"
+      }
+    ]
+  },
+  {
+    "version": "2.4.9",
+    "date": "2026-06-12",
+    "entries": [
+      {
+        "type": "added",
+        "text": "HTTP port now configurable in Settings (default 8090) \u2014 access GUI at http://[IP]:8090"
+      },
+      {
+        "type": "changed",
+        "text": "Web server default port changed from 80 to 8090"
+      },
+      {
+        "type": "note",
+        "text": "HTTP port change requires reboot to take effect"
+      }
+    ]
+  },
+  {
+    "version": "2.4.8",
+    "date": "2026-06-12",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Fast polling now only activates when ALL tracked devices are absent \u2014 previously any one absent device caused 5s polling for everyone, making departures fire in ~50 seconds instead of 10 minutes"
+      },
+      {
+        "type": "changed",
+        "text": "Detection timing: 60s polls while anyone is home, 5s fast polls only when house is completely empty"
+      }
+    ]
+  },
+  {
+    "version": "2.4.7",
+    "date": "2026-06-12",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Scanner trigger infinite loop \u2014 added 30-second cooldown per device to prevent repeated forced polls when ARP fails"
+      },
+      {
+        "type": "fixed",
+        "text": "Departure time corrected to ~10 minutes \u2014 SUSPECT state now polls at 60s same as PRESENT (was 30s which gave 5.5 min departure)"
+      },
+      {
+        "type": "changed",
+        "text": "Detection timing: PRESENT/SUSPECT = 60s polls, ABSENT = 5s fast polls"
+      }
+    ]
+  },
+  {
+    "version": "2.4.6",
+    "date": "2026-06-11",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Default password hint now shows on the login page itself, not after login"
+      },
+      {
+        "type": "fixed",
+        "text": "Hint is hidden after first successful login so it doesn't clutter the screen for returning users"
+      },
+      {
+        "type": "fixed",
+        "text": "Removed duplicate loginError element that was causing silent login failures"
+      }
+    ]
+  },
+  {
+    "version": "2.4.5",
+    "date": "2026-06-11",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Login syntax error \u2014 orphaned OUI array content was breaking JavaScript on fresh installs"
+      },
+      {
+        "type": "added",
+        "text": "Wrong password now shows error message with default password hint"
+      },
+      {
+        "type": "added",
+        "text": "First login shows toast: 'Default password is changeme \u2014 change it in Settings'"
+      }
+    ]
+  },
+  {
+    "version": "2.4.4",
+    "date": "2026-06-11",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Critical: scanner was triggering a full 254-IP scan every 2 seconds \u2014 caused by getDevices() auto-triggering scans on every call"
+      },
+      {
+        "type": "fixed",
+        "text": "Random missed polls eliminated \u2014 scanner mass ARP probing was interfering with detection engine ARP probes"
+      },
+      {
+        "type": "fixed",
+        "text": "Scanner now uses read-only cache for detection cross-reference \u2014 full scans only on scheduled intervals"
+      }
+    ]
+  },
+  {
+    "version": "2.4.3",
+    "date": "2026-06-10",
+    "entries": [
+      {
+        "type": "changed",
+        "text": "Departure time increased to ~10 minutes (10 misses \u00d7 60s) \u2014 avoids false aways for quick trips"
+      },
+      {
+        "type": "changed",
+        "text": "ABSENT devices now fast poll at 5s for return detection \u2014 arrival detection much faster"
+      },
+      {
+        "type": "changed",
+        "text": "SUSPECT devices poll at 30s (intermediate between normal 60s and fast 5s)"
+      },
+      {
+        "type": "added",
+        "text": "Scanner-triggered detection \u2014 when scanner finds an ABSENT device's MAC, immediately triggers a poll"
+      },
+      {
+        "type": "fixed",
+        "text": "Removed debug prints from _updateAbsentMacs"
+      }
+    ]
+  },
+  {
+    "version": "2.4.2",
+    "date": "2026-06-10",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Critical: fast poll was running at 30 seconds not 5 \u2014 FAST_POLL_INTERVAL_MS corrected to 5000ms"
+      },
+      {
+        "type": "fixed",
+        "text": "Normal poll interval corrected to 60 seconds (was 3 minutes)"
+      },
+      {
+        "type": "fixed",
+        "text": "Detection now handles DHCP IP changes via mDNS and scanner cache"
+      },
+      {
+        "type": "fixed",
+        "text": "ARP probe checks scanner cache for updated IP when stored IP fails"
+      }
+    ]
+  },
+  {
+    "version": "2.4.1",
+    "date": "2026-06-10",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Scanner results now sorted \u2014 tracked devices first, then likely phones, then unknown"
+      },
+      {
+        "type": "changed",
+        "text": "Background scan interval reduced from 5 minutes to 2 minutes for faster network discovery"
+      },
+      {
+        "type": "changed",
+        "text": "Scanner ARP passes increased from 3 to 5 per cycle for better device coverage"
+      },
+      {
+        "type": "fixed",
+        "text": "mDNS timeout reduced from 800ms to 200ms \u2014 detection cycles no longer blocked"
+      }
+    ]
+  },
+  {
+    "version": "2.4.0",
+    "date": "2026-06-10",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "mDNS detection timeout reduced from 800ms to 200ms \u2014 poll cycles no longer blocked for 3+ seconds"
+      },
+      {
+        "type": "fixed",
+        "text": "mDNS hostname now correctly matches iOS format (apostrophes removed, not kept as '-s-')"
+      },
+      {
+        "type": "added",
+        "text": "Scanner phone detection now includes Samsung, Google Pixel, and OnePlus OUI prefixes"
+      },
+      {
+        "type": "fixed",
+        "text": "Scanner correctly identifies locally administered MACs (randomized) as likely phones"
+      }
+    ]
+  },
+  {
+    "version": "2.3.9",
+    "date": "2026-06-10",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Firmware version now included in every TCP state push \u2014 C4 driver populates it on first message"
+      },
+      {
+        "type": "fixed",
+        "text": "Passive wake debug logging added to identify watchlist population failure"
+      },
+      {
+        "type": "changed",
+        "text": "Return confidence threshold lowered to 70"
+      }
+    ]
+  },
+  {
+    "version": "2.3.8",
+    "date": "2026-06-10",
+    "entries": [
+      {
+        "type": "added",
+        "text": "VERSION TCP command \u2014 returns firmware version without HTTP auth"
+      },
+      {
+        "type": "fixed",
+        "text": "C4 driver now gets firmware version over TCP instead of HTTP \u2014 fixes version not showing in Composer"
+      }
+    ]
+  },
+  {
+    "version": "2.3.7",
+    "date": "2026-06-09",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Passive wake was never triggering \u2014 _updateAbsentMacs was called on arrival but not departure"
+      },
+      {
+        "type": "fixed",
+        "text": "Passive sniffer watchlist now correctly populated when device goes ABSENT"
+      },
+      {
+        "type": "fixed",
+        "text": "Health endpoint now returns firmware_version field \u2014 fixes Control4 driver not showing firmware version"
+      }
+    ]
+  },
+  {
+    "version": "2.3.6",
+    "date": "2026-06-09",
+    "entries": [
+      {
+        "type": "changed",
+        "text": "Fast poll interval reduced from 15s to 5s \u2014 return detection now sub-10 seconds"
+      },
+      {
+        "type": "fixed",
+        "text": "Added debug logging to passive wake mechanism to diagnose trigger issues"
+      }
+    ]
+  },
+  {
+    "version": "2.3.5",
+    "date": "2026-06-09",
+    "entries": [
+      {
+        "type": "added",
+        "text": "Check for Updates button in Firmware tab \u2014 instant version check without waiting 24 hours"
+      },
+      {
+        "type": "added",
+        "text": "Passive wake detection \u2014 when ABSENT device sends any WiFi packet, detection runs immediately instead of waiting for next poll cycle"
+      },
+      {
+        "type": "changed",
+        "text": "Return detection now near-instant \u2014 phone sends mDNS/broadcast on joining WiFi which wakes detection within seconds"
+      },
+      {
+        "type": "changed",
+        "text": "Miss threshold default lowered to 8 minutes"
+      }
+    ]
+  },
+  {
+    "version": "2.3.4",
+    "date": "2026-06-09",
+    "entries": [
+      {
+        "type": "changed",
+        "text": "Miss threshold reduced from 15 to 8 \u2014 departure now takes ~8 minutes instead of 15"
+      },
+      {
+        "type": "fixed",
+        "text": "Fast poll kept active after ABSENT for quicker return detection"
+      },
+      {
+        "type": "changed",
+        "text": "Fast poll interval reduced from 30s to 15s"
+      }
+    ]
+  },
+  {
+    "version": "2.3.3",
+    "date": "2026-06-09",
+    "entries": [
+      {
+        "type": "changed",
+        "text": "Device ID field removed from Add Device modal \u2014 auto-generated from friendly name (e.g. 'Jacob\\'s iPhone' becomes 'jacobs_iphone')"
+      },
+      {
+        "type": "fixed",
+        "text": "Simpler device setup \u2014 dealers only need to enter name, MAC, and IP"
+      }
+    ]
+  },
+  {
+    "version": "2.3.2",
+    "date": "2026-06-09",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Watchdog no longer triggers during OTA firmware download \u2014 suspended during download and re-enabled on failure"
+      },
+      {
+        "type": "fixed",
+        "text": "Device stays online after failed update attempt"
+      }
+    ]
+  },
+  {
+    "version": "2.3.1",
+    "date": "2026-06-08",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Device no longer reboots when update download fails \u2014 stays online and keeps banner visible for retry"
+      },
+      {
+        "type": "fixed",
+        "text": "Device only reboots after a successful firmware flash"
+      }
+    ]
+  },
+  {
+    "version": "2.3.0",
+    "date": "2026-06-08",
+    "entries": [
+      {
+        "type": "added",
+        "text": "Automatic OTA updates from GitHub \u2014 checks every 24 hours for new firmware"
+      },
+      {
+        "type": "added",
+        "text": "Auto-update toggle in Settings \u2014 off by default, enable for hands-off dealer installs"
+      },
+      {
+        "type": "added",
+        "text": "Update available banner on Dashboard when new version is detected"
+      },
+      {
+        "type": "added",
+        "text": "Install Update button for manual one-click updates without USB cable"
+      },
+      {
+        "type": "added",
+        "text": "FIRMWARE_VERSION constant \u2014 single source of truth for version number"
+      },
+      {
+        "type": "fixed",
+        "text": "Devices tab now shows live miss count in Nerd Facts"
+      }
+    ]
+  },
+  {
+    "version": "2.2.4",
+    "date": "2026-06-02",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Miss counter no longer increments past threshold when device is already ABSENT"
+      },
+      {
+        "type": "fixed",
+        "text": "Duplicate event suppression now stops callbacks too \u2014 Control4 and HA no longer receive repeated departure events"
+      },
+      {
+        "type": "fixed",
+        "text": "Suppressed events no longer forwarded to TCP, MQTT, or any other integration"
+      }
+    ]
+  },
+  {
+    "version": "2.2.4",
+    "date": "2026-06-02",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Departure events no longer fire repeatedly every poll cycle once device is ABSENT \u2014 was causing repeated TCP/MQTT/C4 events every minute"
+      },
+      {
+        "type": "fixed",
+        "text": "Miss counter now increments silently after ABSENT threshold is reached \u2014 no callbacks fired"
+      },
+      {
+        "type": "fixed",
+        "text": "Root cause of repeated every-6-minute events in event log resolved"
+      }
+    ]
+  },
+  {
+    "version": "2.2.3",
+    "date": "2026-06-01",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "False arrival events from passive WiFi traffic eliminated \u2014 requires confidence 80+ and 2 consecutive hits to return from ABSENT"
+      },
+      {
+        "type": "fixed",
+        "text": "Network scanner phone detection moved to browser-side with expanded Apple OUI list \u2014 now correctly identifies iPhones and iPads"
+      },
+      {
+        "type": "fixed",
+        "text": "Duplicate event suppression checks 5 minute window across all recent events"
+      }
+    ]
+  },
+  {
+    "version": "2.2.2",
+    "date": "2026-06-01",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Duplicate event suppression now checks a 5 minute window instead of just the last event"
+      },
+      {
+        "type": "fixed",
+        "text": "Multiple devices departing simultaneously no longer causes repeated events every 3 minutes"
+      }
+    ]
+  },
+  {
+    "version": "2.2.1",
+    "date": "2026-05-31",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Poll Now button no longer causes reboot \u2014 was running detection from wrong task context"
+      },
+      {
+        "type": "fixed",
+        "text": "Force poll now queued as a flag and executed safely by the detection task on Core 0"
+      }
+    ]
+  },
+  {
+    "version": "2.2.0",
+    "date": "2026-05-30",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Event timeline no longer shows repeated departure/arrival events every 3 minutes"
+      },
+      {
+        "type": "fixed",
+        "text": "Duplicate consecutive events for the same device are suppressed from the history buffer"
+      },
+      {
+        "type": "added",
+        "text": "Device add date stored in NVS \u2014 persists across reboots"
+      },
+      {
+        "type": "added",
+        "text": "Nerd Facts now shows date device was added"
+      }
+    ]
+  },
+  {
+    "version": "2.1.8",
+    "date": "2026-05-30",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Wizard step titles renamed to natural names \u2014 Welcome, Security, MAC Randomization, Add Devices, Detection Settings, All Done"
+      },
+      {
+        "type": "fixed",
+        "text": "Restored 'no subscription' text in wizard welcome screen"
+      },
+      {
+        "type": "fixed",
+        "text": "Apple device detection now recognizes iPads, Macs, Apple Watch, and AirPods with real MACs \u2014 not just iPhones with randomized MACs"
+      }
+    ]
+  },
+  {
+    "version": "2.1.7",
+    "date": "2026-05-30",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Wizard resume button now actually appears \u2014 HTML element was missing from the DOM"
+      },
+      {
+        "type": "fixed",
+        "text": "Resume Setup Wizard button shows after adding a device from within the wizard flow"
+      }
+    ]
+  },
+  {
+    "version": "2.1.6",
+    "date": "2026-05-30",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Network scanner no longer limited to 10 devices \u2014 was hitting ESP32 ARP table size limit"
+      },
+      {
+        "type": "added",
+        "text": "Scanner now maintains its own persistent device cache \u2014 results accumulate across scans"
+      },
+      {
+        "type": "added",
+        "text": "Three-pass ARP table read catches more devices before entries get evicted"
+      },
+      {
+        "type": "added",
+        "text": "Cached entries expire after 10 minutes to keep results fresh"
+      }
+    ]
+  },
+  {
+    "version": "2.1.5",
+    "date": "2026-05-30",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Network scanner was limited to 10 devices due to JSON document size \u2014 now supports up to 50"
+      },
+      {
+        "type": "fixed",
+        "text": "Network scanner results were inconsistent \u2014 fixed broken ARP table loop that was only checking one entry"
+      },
+      {
+        "type": "fixed",
+        "text": "Tracked device highlighting now works reliably \u2014 fixed MAC address case comparison"
+      }
+    ]
+  },
+  {
+    "version": "2.1.4",
+    "date": "2026-05-30",
+    "entries": [
+      {
+        "type": "added",
+        "text": "Background ARP scanner task \u2014 probes all IPs in subnet every 5 minutes"
+      },
+      {
+        "type": "fixed",
+        "text": "Network scanner now finds all devices on the network, not just the router"
+      },
+      {
+        "type": "added",
+        "text": "Scanner shows last scan time and device count"
+      },
+      {
+        "type": "added",
+        "text": "Scanner auto-refreshes if first scan is still in progress"
+      },
+      {
+        "type": "fixed",
+        "text": "RSSI chart font size and label padding improved"
+      }
+    ]
+  },
+  {
+    "version": "2.1.2",
+    "date": "2026-05-29",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "RSSI chart now renders correctly when Health tab is opened"
+      },
+      {
+        "type": "fixed",
+        "text": "Canvas no longer resized inside draw function which was clearing it before drawing"
+      }
+    ]
+  },
+  {
+    "version": "2.1.1",
+    "date": "2026-05-29",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Auto theme icon changed to monitor symbol \u2014 much clearer than sync arrows"
+      },
+      {
+        "type": "fixed",
+        "text": "RSSI chart empty message now shows how many readings have been collected so far"
+      },
+      {
+        "type": "fixed",
+        "text": "RSSI chart rendering delayed 50ms to ensure canvas dimensions are available"
+      }
+    ]
+  },
+  {
+    "version": "2.1.0",
+    "date": "2026-05-29",
+    "entries": [
+      {
+        "type": "added",
+        "text": "Network Scanner tab \u2014 shows all devices on local network, highlights tracked devices and likely phones, one-click to add"
+      },
+      {
+        "type": "added",
+        "text": "WiFi signal history chart in Health tab \u2014 1 hour RSSI trend with quality zones"
+      },
+      {
+        "type": "added",
+        "text": "Event timeline grouped by date with actual timestamps instead of relative time"
+      },
+      {
+        "type": "added",
+        "text": "Onboarding wizard \u2014 6-step setup guide, auto-shows on first login when no devices configured"
+      },
+      {
+        "type": "added",
+        "text": "Setup Wizard button in Settings for re-running wizard anytime"
+      },
+      {
+        "type": "fixed",
+        "text": "Theme toggle now uses SVG icon that adapts to light/dark mode with no blue box"
+      },
+      {
+        "type": "changed",
+        "text": "Default miss threshold: 5 \u2192 15"
+      },
+      {
+        "type": "changed",
+        "text": "Miss threshold is now global \u2014 applies to all devices from Settings"
+      },
+      {
+        "type": "changed",
+        "text": "Network scanner moved into Devices tab instead of standalone tab \u2014 better workflow for adding devices"
+      },
+      {
+        "type": "fixed",
+        "text": "Network scanner now uses simpler ARP table lookup \u2014 no more infinite loading spinner"
+      },
+      {
+        "type": "fixed",
+        "text": "Network scanner now actively sends ARP requests before reading table \u2014 finds more devices"
+      },
+      {
+        "type": "fixed",
+        "text": "RSSI chart now displays correctly even when NTP timestamp is 0"
+      },
+      {
+        "type": "fixed",
+        "text": "Wizard pauses when opening scanner or add device \u2014 Resume Setup button appears to continue"
+      },
+      {
+        "type": "fixed",
+        "text": "Theme icons improved \u2014 clearer sun, moon, and sync symbols with better visibility"
+      },
+      {
+        "type": "fixed",
+        "text": "Wizard welcome text updated \u2014 removed misleading 'works offline' claim"
+      }
+    ]
+  },
+  {
+    "version": "2.0.6",
+    "date": "2026-05-27",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Nerd Facts panels stay open through dashboard refreshes and Poll Now"
+      },
+      {
+        "type": "added",
+        "text": "MQTT status chip in header \u2014 shows green/red connection state when MQTT is enabled"
+      },
+      {
+        "type": "added",
+        "text": "Header indicator selector in Settings \u2014 toggle C4, MQTT, and uptime badge on or off"
+      },
+      {
+        "type": "added",
+        "text": "Header chip preferences saved to browser localStorage"
+      }
+    ]
+  },
+  {
+    "version": "2.0.5",
+    "date": "2026-05-27",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Nerd Facts miss count now shows 'threshold reached' when device is absent instead of misleading 0"
+      },
+      {
+        "type": "fixed",
+        "text": "Miss count now displays as current/threshold (e.g. 3/5) while device is in suspect state"
+      },
+      {
+        "type": "added",
+        "text": "Settings fields that require reboot now labeled with amber reboot indicator"
+      }
+    ]
+  },
+  {
+    "version": "2.0.4",
+    "date": "2026-05-27",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "MQTT memory leak \u2014 WiFiClient and PubSubClient now recreated fresh on each reconnect attempt"
+      },
+      {
+        "type": "fixed",
+        "text": "Leaked buffers from failed MQTT connections now properly freed via delete before each reconnect"
+      },
+      {
+        "type": "fixed",
+        "text": "All MQTT client dereferences now null-checked to prevent crashes during client recreation"
+      }
+    ]
+  },
+  {
+    "version": "2.0.3",
+    "date": "2026-05-27",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Nerd Facts now works correctly on both Dashboard and Devices tabs"
+      },
+      {
+        "type": "fixed",
+        "text": "Fixed ID conflict causing Nerd Facts to not expand on Devices tab"
+      }
+    ]
+  },
+  {
+    "version": "2.0.2",
+    "date": "2026-05-27",
+    "entries": [
+      {
+        "type": "added",
+        "text": "Arrival and departure toast notifications \u2014 green when someone arrives, red when everyone leaves, info when a person departs"
+      },
+      {
+        "type": "added",
+        "text": "Global occupancy change toasts \u2014 House is now occupied / Everyone away"
+      }
+    ]
+  },
+  {
+    "version": "2.0.1",
+    "date": "2026-05-27",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Crash loop on boot \u2014 increased FreeRTOS task stack sizes to prevent stack overflow"
+      },
+      {
+        "type": "fixed",
+        "text": "Detection task stack: 8KB to 12KB"
+      },
+      {
+        "type": "fixed",
+        "text": "MQTT task stack: 8KB to 10KB"
+      },
+      {
+        "type": "fixed",
+        "text": "TCP and watchdog tasks: 4KB to 6KB each"
+      }
+    ]
+  },
+  {
+    "version": "2.0.0",
+    "date": "2026-05-26",
+    "entries": [
+      {
+        "type": "added",
+        "text": "Dark mode, light mode, and auto (follows system) \u2014 toggle in header"
+      },
+      {
+        "type": "added",
+        "text": "Persistent login \u2014 browser remembers session token, no re-login on refresh"
+      },
+      {
+        "type": "added",
+        "text": "Splash screen login \u2014 centered modal with fade transition"
+      },
+      {
+        "type": "added",
+        "text": "Nerd Facts \u2014 expandable per-device panel showing detection method, confidence, miss count, last seen"
+      },
+      {
+        "type": "added",
+        "text": "C4 TCP connection status dot in header \u2014 green when Control4 is connected"
+      },
+      {
+        "type": "added",
+        "text": "Uptime badge in header \u2014 shows days/hours of continuous uptime"
+      },
+      {
+        "type": "added",
+        "text": "Toast notifications \u2014 replaces all alert() dialogs with subtle slide-in toasts"
+      },
+      {
+        "type": "changed",
+        "text": "Tab order: Dashboard, Devices, Events, Settings, Health, Firmware Update, Changelog"
+      },
+      {
+        "type": "added",
+        "text": "TCP client count shown in Health tab"
+      }
+    ]
+  },
+  {
+    "version": "1.6.5",
+    "date": "2026-05-26",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Memory leak in passive traffic detection cache \u2014 entries now cleaned up after 5 minutes and cache capped at 64 entries"
+      },
+      {
+        "type": "added",
+        "text": "Heap delta shown in watchdog heartbeat \u2014 easy to spot memory trends"
+      },
+      {
+        "type": "added",
+        "text": "Warning logged when free heap drops below 50KB"
+      },
+      {
+        "type": "added",
+        "text": "Warning logged when heap drops more than 5KB in one minute"
+      }
+    ]
+  },
+  {
+    "version": "1.6.4",
+    "date": "2026-05-26",
+    "entries": [
+      {
+        "type": "added",
+        "text": "Device IP address shown in GUI header \u2014 always visible without needing the health tab"
+      },
+      {
+        "type": "added",
+        "text": "Portal success page now shows both hostname.local and IP address"
+      },
+      {
+        "type": "added",
+        "text": "Reset WiFi button in Settings \u2014 launches setup portal on next boot without touching code"
+      },
+      {
+        "type": "fixed",
+        "text": "Portal redirects to IP address after setup instead of hostname.local for reliability on Windows"
+      }
+    ]
+  },
+  {
+    "version": "1.6.3",
+    "date": "2026-05-26",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Captive portal scan now retries up to 8 times with increasing delays \u2014 much more reliable on Windows laptops"
+      },
+      {
+        "type": "fixed",
+        "text": "Scan results cached for 30 seconds \u2014 rapid retries get instant results without re-scanning"
+      },
+      {
+        "type": "fixed",
+        "text": "Save request auto-retries up to 2 times on network error before showing failure"
+      },
+      {
+        "type": "added",
+        "text": "Scan failure shows inline Try Again link instead of requiring full page refresh"
+      }
+    ]
+  },
+  {
+    "version": "1.6.2",
+    "date": "2026-05-26",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "Watchdog reboot caused by MQTT connect() blocking \u2014 added 3s socket timeout"
+      },
+      {
+        "type": "fixed",
+        "text": "MQTT reconnect interval increased from 5s to 15s to reduce blocking frequency"
+      },
+      {
+        "type": "fixed",
+        "text": "Watchdog-safe yield added before and after MQTT connect attempts"
+      }
+    ]
+  },
+  {
+    "version": "1.6.1",
+    "date": "2026-05-26",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "NTP timezone race condition \u2014 local time now displays correctly on first boot instead of showing UTC"
+      },
+      {
+        "type": "fixed",
+        "text": "Firmware version inconsistency \u2014 all version references now correctly show 1.6.1"
+      },
+      {
+        "type": "fixed",
+        "text": "Version number in GUI header now matches actual firmware version"
+      }
+    ]
+  },
+  {
+    "version": "1.6.0",
+    "date": "2025-05-25",
+    "entries": [
+      {
+        "type": "added",
+        "text": "OTA firmware update via web GUI \u2014 no USB cable required"
+      },
+      {
+        "type": "added",
+        "text": "OTA filesystem update via web GUI \u2014 update GUI and changelog remotely"
+      },
+      {
+        "type": "added",
+        "text": "Progress bar during upload with automatic reconnect after reboot"
+      },
+      {
+        "type": "added",
+        "text": "Automatic rollback if firmware update fails or verification fails"
+      },
+      {
+        "type": "added",
+        "text": "Firmware Update tab in web GUI with step-by-step instructions"
+      },
+      {
+        "type": "added",
+        "text": "MQTT username and password fields in settings GUI"
+      },
+      {
+        "type": "fixed",
+        "text": "MQTT enabled flag not persisting correctly across reboots"
+      },
+      {
+        "type": "fixed",
+        "text": "GUI header version now dynamic from firmware"
+      },
+      {
+        "type": "added",
+        "text": "Reboot button in settings \u2014 no more unplugging to apply changes"
+      }
+    ]
+  },
+  {
+    "version": "1.5.1",
+    "date": "2025-05-25",
+    "entries": [
+      {
+        "type": "fixed",
+        "text": "MQTT enabled flag not persisting correctly across reboots"
+      },
+      {
+        "type": "fixed",
+        "text": "GUI header version now pulls dynamically from firmware instead of hardcoded"
+      },
+      {
+        "type": "fixed",
+        "text": "Health tab firmware version corrected to current version"
+      },
+      {
+        "type": "added",
+        "text": "Reboot button in Settings \u2014 applies config changes without unplugging device"
+      },
+      {
+        "type": "added",
+        "text": "POST /api/v1/reboot endpoint"
+      }
+    ]
+  },
+  {
+    "version": "1.5.0",
+    "date": "2025-05-25",
+    "entries": [
+      {
+        "type": "added",
+        "text": "MQTT client with PubSubClient library"
+      },
+      {
+        "type": "added",
+        "text": "Publishes occupancy, per-device state, events, and health to MQTT broker"
+      },
+      {
+        "type": "added",
+        "text": "Home Assistant MQTT auto-discovery \u2014 entities appear automatically in HA"
+      },
+      {
+        "type": "added",
+        "text": "Retained topics for occupancy, device state, and health"
+      },
+      {
+        "type": "added",
+        "text": "MQTT last-will message \u2014 HA shows device offline if ESP32 drops"
+      },
+      {
+        "type": "added",
+        "text": "MQTT command topics: cmd/poll and cmd/restart"
+      },
+      {
+        "type": "added",
+        "text": "MQTT connection status shown in health tab and watchdog heartbeat"
+      },
+      {
+        "type": "added",
+        "text": "mqttTask on Core 1 \u2014 isolated from detection and TCP tasks"
+      }
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "date": "2025-05-25",
+    "entries": [
+      {
+        "type": "added",
+        "text": "NTP time synchronization \u2014 events now carry real Unix timestamps"
+      },
+      {
+        "type": "added",
+        "text": "Timezone selection in settings \u2014 Eastern, Central, Mountain, Pacific, Hawaii, Alaska, Arizona"
+      },
+      {
+        "type": "added",
+        "text": "NTP sync status and current time shown in health tab"
+      },
+      {
+        "type": "added",
+        "text": "Current time shown in watchdog heartbeat log every 60s"
+      },
+      {
+        "type": "added",
+        "text": "Timezone saved to NVS and restored on reboot"
+      }
+    ]
+  },
+  {
+    "version": "1.3.0",
+    "date": "2025-05-25",
+    "entries": [
+      {
+        "type": "added",
+        "text": "WiFi captive portal for first-time setup \u2014 no code changes needed for new installs"
+      },
+      {
+        "type": "added",
+        "text": "Setup AP broadcasts as PresenceSetup_XXXX unique to each device"
+      },
+      {
+        "type": "added",
+        "text": "Portal auto-scans and lists available networks with signal strength"
+      },
+      {
+        "type": "added",
+        "text": "Captive portal detection for iOS, Android, and Windows \u2014 opens automatically"
+      },
+      {
+        "type": "added",
+        "text": "Automatic fallback to portal if WiFi fails after 3 connection attempts"
+      },
+      {
+        "type": "added",
+        "text": "Portal redirects to device URL after successful credential save"
+      },
+      {
+        "type": "removed",
+        "text": "Hardcoded WiFi credentials removed from firmware"
+      }
+    ]
+  },
+  {
+    "version": "1.2.0",
+    "date": "2025-05-25",
+    "entries": [
+      {
+        "type": "added",
+        "text": "TCP socket server on port 4999 for Control4 and other platform drivers"
+      },
+      {
+        "type": "added",
+        "text": "Push notifications to all TCP clients on every presence event"
+      },
+      {
+        "type": "added",
+        "text": "Full state push to new clients immediately on connect"
+      },
+      {
+        "type": "added",
+        "text": "POLL command \u2014 client requests immediate full status"
+      },
+      {
+        "type": "added",
+        "text": "PING/PONG keepalive support"
+      },
+      {
+        "type": "added",
+        "text": "Up to 4 simultaneous TCP client connections"
+      }
+    ]
+  },
+  {
+    "version": "1.1.0",
+    "date": "2025-05-22",
+    "entries": [
+      {
+        "type": "added",
+        "text": "REST API with full CRUD for devices, status, events, health, config, backup/restore"
+      },
+      {
+        "type": "added",
+        "text": "Web GUI served from LittleFS \u2014 dashboard, devices, events, settings, health, changelog tabs"
+      },
+      {
+        "type": "added",
+        "text": "Session token authentication for all API endpoints"
+      },
+      {
+        "type": "changed",
+        "text": "Boot delay before first poll increased from 3s to 8s"
+      }
+    ]
+  },
+  {
+    "version": "1.0.0",
+    "date": "2025-05-21",
+    "entries": [
+      {
+        "type": "added",
+        "text": "Multi-method detection engine: ARP, mDNS/Bonjour, passive traffic, ICMP ping"
+      },
+      {
+        "type": "added",
+        "text": "Per-device state machine: UNKNOWN to PRESENT to SUSPECT to ABSENT"
+      },
+      {
+        "type": "added",
+        "text": "Global occupancy state, event system, relay output, LEDs, NVS config, watchdog"
+      }
+    ]
+  }
+]

@@ -1,0 +1,23 @@
+# Arduino build artifacts
+build/
+*.elf
+*.map
+
+# Compiled binaries (populated by CI — do not commit manually)
+firmware/presenceplatform.bin
+firmware/presenceplatform.fs.bin
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp
+*~
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Arduino IDE
+*.bak

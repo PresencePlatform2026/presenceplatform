@@ -1,0 +1,7 @@
+{
+  "version": "2.3.7",
+  "firmware_url": "https://github.com/PresencePlatform2026/presenceplatform/releases/download/v2.3.7/presenceplatform.bin",
+  "fs_url": "https://github.com/PresencePlatform2026/presenceplatform/releases/download/v2.3.7/presenceplatform.fs.bin",
+  "release_notes_url": "https://github.com/PresencePlatform2026/presenceplatform/releases/tag/v2.3.7",
+  "min_firmware_for_ota": "2.0.0"
+}

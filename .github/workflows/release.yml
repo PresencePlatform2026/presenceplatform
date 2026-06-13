@@ -1,0 +1,133 @@
+name: Build & Release Firmware
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'   # triggers on v2.3.8, v2.4.0, etc.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Install Arduino CLI ───────────────────────────────────────────────
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      # ── Configure Arduino CLI for ESP32 ──────────────────────────────────
+      - name: Install ESP32 board support
+        run: |
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls \
+            https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32@2.0.17
+
+      # ── Install libraries ─────────────────────────────────────────────────
+      - name: Install required libraries
+        run: |
+          arduino-cli lib install "ArduinoJson@6.21.5"
+          arduino-cli lib install "PubSubClient@2.8.0"
+          # Add any other libraries your firmware depends on here
+
+      # ── Parse version from tag ────────────────────────────────────────────
+      - name: Set version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"          # e.g. v2.3.8
+          VER="${TAG#v}"                    # strip leading 'v' → 2.3.8
+          echo "tag=$TAG"     >> "$GITHUB_OUTPUT"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "Building version: $VER"
+
+      # ── Build firmware binary ─────────────────────────────────────────────
+      - name: Build firmware (.bin)
+        run: |
+          arduino-cli compile \
+            --fqbn esp32:esp32:esp32:FlashSize=4M,PartitionScheme=min_spiffs \
+            --export-binaries \
+            --build-property "build.extra_flags=-DFIRMWARE_VERSION=\"${{ steps.version.outputs.version }}\"" \
+            firmware/PresencePlatform/
+          
+          # Copy the firmware binary to a predictable name
+          cp firmware/PresencePlatform/build/esp32.esp32.esp32/PresencePlatform.ino.bin \
+             firmware/presenceplatform.bin
+
+      # ── Build LittleFS image ──────────────────────────────────────────────
+      - name: Build LittleFS filesystem image (.bin)
+        run: |
+          # Install mklittlefs
+          pip install esptool
+          wget -q https://github.com/earlephilhower/mklittlefs/releases/download/3.2.0/mklittlefs-3.2.0-linux-amd64.tar.gz
+          tar -xzf mklittlefs-3.2.0-linux-amd64.tar.gz
+          chmod +x mklittlefs
+
+          # Build the LittleFS image from the /data folder
+          ./mklittlefs \
+            -c firmware/PresencePlatform/data \
+            -p 256 -b 4096 -s 0x160000 \
+            firmware/presenceplatform.fs.bin
+
+      # ── Update version.json ───────────────────────────────────────────────
+      - name: Update version.json
+        run: |
+          VER="${{ steps.version.outputs.version }}"
+          TAG="${{ steps.version.outputs.tag }}"
+          BASE_URL="https://github.com/PresencePlatform2026/presenceplatform/releases/download/${TAG}"
+
+          cat > firmware/version.json << EOF
+          {
+            "version": "${VER}",
+            "firmware_url": "${BASE_URL}/presenceplatform.bin",
+            "fs_url": "${BASE_URL}/presenceplatform.fs.bin",
+            "release_notes_url": "https://github.com/PresencePlatform2026/presenceplatform/releases/tag/${TAG}",
+            "min_firmware_for_ota": "2.0.0"
+          }
+          EOF
+
+          echo "version.json contents:"
+          cat firmware/version.json
+
+      # ── Commit updated version.json back to main ──────────────────────────
+      - name: Commit version.json to main branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git add firmware/version.json
+          git diff --cached --quiet || git commit -m "chore: update version.json to ${{ steps.version.outputs.version }} [skip ci]"
+          git push origin main
+
+      # ── Create GitHub Release ─────────────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "PresencePlatform ${{ steps.version.outputs.tag }}"
+          body: |
+            ## PresencePlatform ${{ steps.version.outputs.tag }}
+
+            ### Installation
+            Flash via the web GUI → Settings → Check for Updates, or use the manual upload page.
+
+            ### Files
+            - `presenceplatform.bin` — Main firmware
+            - `presenceplatform.fs.bin` — LittleFS filesystem (web UI + config)
+
+            ### OTA Update URL
+            ```
+            https://raw.githubusercontent.com/PresencePlatform2026/presenceplatform/main/firmware/version.json
+            ```
+          files: |
+            firmware/presenceplatform.bin
+            firmware/presenceplatform.fs.bin
+            firmware/version.json
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

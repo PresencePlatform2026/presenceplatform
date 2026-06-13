@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PresencePlatform</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* ============================================================
+   CSS Variables — Light and Dark mode
+   ============================================================ */
+:root {
+  --bg:#f5f5f3;--surface:#fff;--surface2:#f9f9f7;
+  --border:#e5e5e2;--border2:#d0d0cc;
+  --text:#1a1a18;--text2:#6b6b66;--text3:#9b9b96;
+  --green:#1D9E75;--green-bg:#E1F5EE;--green-text:#085041;
+  --red:#D85A30;--red-bg:#FAECE7;--red-text:#4A1B0C;
+  --amber:#BA7517;--amber-bg:#FAEEDA;--amber-text:#412402;
+  --blue:#378ADD;--blue-bg:#E6F1FB;--blue-text:#042C53;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-text:#26215C;
+  --shadow:0 2px 8px rgba(0,0,0,.06);
+  --radius:10px;--radius-sm:6px;
+  --transition:all .2s ease;
+}
+[data-theme="dark"] {
+  --bg:#1a1a18;--surface:#242422;--surface2:#2e2e2c;
+  --border:#3a3a38;--border2:#4a4a48;
+  --text:#f0f0ee;--text2:#a0a09c;--text3:#6b6b66;
+  --green:#2DD4A0;--green-bg:#0a2e22;--green-text:#2DD4A0;
+  --red:#F08060;--red-bg:#2e1208;--red-text:#F08060;
+  --amber:#D4A030;--amber-bg:#2e2008;--amber-text:#D4A030;
+  --blue:#60A8F0;--blue-bg:#082030;--blue-text:#60A8F0;
+  --purple:#8880D4;--purple-bg:#181630;--purple-text:#8880D4;
+  --shadow:0 2px 8px rgba(0,0,0,.3);
+}
+
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+     background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;
+     transition:background .3s,color .3s}
+
+/* ============================================================
+   Toast notifications
+   ============================================================ */
+#toastContainer{position:fixed;bottom:24px;right:24px;z-index:999;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--surface);border:0.5px solid var(--border);
+  border-radius:var(--radius);padding:12px 16px;font-size:13px;
+  box-shadow:var(--shadow);pointer-events:all;opacity:0;
+  transform:translateY(8px);transition:all .25s ease;max-width:320px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.toast-success{border-left:3px solid var(--green)}
+.toast.toast-error{border-left:3px solid var(--red)}
+.toast.toast-info{border-left:3px solid var(--blue)}
+
+/* ============================================================
+   Login splash
+   ============================================================ */
+#loginView{position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;z-index:100;transition:opacity .3s}
+#loginView.fade-out{opacity:0;pointer-events:none}
+.login-card{background:var(--surface);border:0.5px solid var(--border);
+  border-radius:14px;padding:36px;width:100%;max-width:380px;
+  box-shadow:var(--shadow)}
+.login-logo{font-size:22px;font-weight:600;margin-bottom:4px;letter-spacing:-.02em}
+.login-logo span{color:var(--text2);font-weight:400;font-size:16px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:28px}
+.login-error{font-size:12px;color:var(--red);margin-top:10px;
+  padding:8px 10px;background:var(--red-bg);border-radius:var(--radius-sm)}
+
+/* ============================================================
+   App layout
+   ============================================================ */
+.app{display:flex;flex-direction:column;min-height:100vh;
+  opacity:0;transition:opacity .3s}
+.app.visible{opacity:1}
+
+.header{background:var(--surface);border-bottom:0.5px solid var(--border);
+  padding:0 20px;display:flex;align-items:center;gap:12px;height:52px;
+  position:sticky;top:0;z-index:50}
+.logo{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.logo-ver{color:var(--text2);font-weight:400;font-size:12px;margin-left:4px}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.header-chip{display:flex;align-items:center;gap:5px;
+  background:var(--surface2);border:0.5px solid var(--border);
+  border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;
+  color:var(--text2)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.dot.home{background:var(--green)}
+.dot.away{background:var(--red)}
+.dot.unknown{background:var(--amber)}
+.dot.online{background:var(--green)}
+.dot.offline{background:var(--red)}
+
+/* Uptime badge */
+.uptime-badge{font-size:11px;color:var(--text3);padding:2px 8px;
+  background:var(--surface2);border:0.5px solid var(--border);
+  border-radius:20px}
+
+/* Theme toggle */
+.theme-btn{width:30px;height:30px;border-radius:50%;border:0.5px solid var(--border);
+  background:var(--surface2);cursor:pointer;display:flex;align-items:center;
+  justify-content:center;font-size:14px;transition:var(--transition);outline:none}
+.theme-btn:hover{background:var(--border)}
+
+/* Nav */
+.nav{background:var(--surface);border-bottom:0.5px solid var(--border);
+  padding:0 20px;display:flex;gap:0;overflow-x:auto}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{padding:10px 14px;font-size:13px;color:var(--text2);cursor:pointer;
+  border:none;background:none;border-bottom:2px solid transparent;
+  margin-bottom:-0.5px;transition:all .15s;font-family:inherit;white-space:nowrap}
+.nav-btn:hover{color:var(--text)}
+.nav-btn.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+
+.content{flex:1;padding:20px;max-width:980px;margin:0 auto;width:100%}
+
+/* ============================================================
+   Cards & Layout
+   ============================================================ */
+.card{background:var(--surface);border:0.5px solid var(--border);
+  border-radius:var(--radius);padding:18px 20px;margin-bottom:14px}
+.card-title{font-size:12px;font-weight:500;color:var(--text2);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.divider{border:none;border-top:0.5px solid var(--border);margin:16px 0}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px;margin-bottom:16px}
+.metric{background:var(--surface);border:0.5px solid var(--border);
+  border-radius:var(--radius);padding:14px 16px}
+.metric-val{font-size:22px;font-weight:500;line-height:1;margin-bottom:4px}
+.metric-lbl{font-size:11px;color:var(--text2);text-transform:uppercase;
+  letter-spacing:.04em}
+
+/* ============================================================
+   Device cards
+   ============================================================ */
+.device-list{display:flex;flex-direction:column;gap:10px}
+.device-card{background:var(--surface);border:0.5px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;transition:var(--transition)}
+.device-main{padding:14px 16px;display:flex;align-items:center;gap:12px}
+.device-avatar{width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:500;flex-shrink:0}
+.device-avatar.present{background:var(--green-bg);color:var(--green-text)}
+.device-avatar.absent{background:var(--red-bg);color:var(--red-text)}
+.device-avatar.suspect{background:var(--amber-bg);color:var(--amber-text)}
+.device-avatar.unknown{background:var(--surface2);color:var(--text2)}
+.device-info{flex:1;min-width:0}
+.device-name{font-size:14px;font-weight:500;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.device-meta{font-size:12px;color:var(--text2);margin-top:2px}
+.device-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.conf-bar-wrap{width:56px;height:3px;background:var(--border);
+  border-radius:2px;overflow:hidden}
+.conf-bar{height:100%;border-radius:2px;transition:width .4s}
+.device-time{font-size:11px;color:var(--text3)}
+
+/* Nerd Facts */
+.nerd-toggle{display:flex;align-items:center;gap:6px;padding:8px 16px;
+  font-size:11px;color:var(--text3);cursor:pointer;
+  border-top:0.5px solid var(--border);background:var(--surface2);
+  transition:var(--transition);user-select:none}
+.nerd-toggle:hover{color:var(--text2)}
+.nerd-facts{padding:12px 16px;border-top:0.5px solid var(--border);
+  background:var(--surface2);display:none}
+.nerd-facts.open{display:block}
+.nerd-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nerd-item{background:var(--bg);border-radius:var(--radius-sm);padding:8px 10px}
+.nerd-label{font-size:10px;color:var(--text3);text-transform:uppercase;
+  letter-spacing:.04em;margin-bottom:3px}
+.nerd-value{font-size:13px;font-weight:500}
+.nerd-bar-wrap{height:4px;background:var(--border);border-radius:2px;
+  overflow:hidden;margin-top:4px}
+.nerd-bar{height:100%;border-radius:2px;transition:width .4s}
+
+/* ============================================================
+   Badges & Buttons
+   ============================================================ */
+.badge{display:inline-block;font-size:11px;padding:2px 8px;
+  border-radius:4px;font-weight:500}
+.badge-green{background:var(--green-bg);color:var(--green-text)}
+.badge-red{background:var(--red-bg);color:var(--red-text)}
+.badge-amber{background:var(--amber-bg);color:var(--amber-text)}
+.badge-gray{background:var(--surface2);color:var(--text2);
+  border:0.5px solid var(--border)}
+.badge-blue{background:var(--blue-bg);color:var(--blue-text)}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+  border-radius:var(--radius-sm);border:0.5px solid var(--border2);
+  background:var(--surface);color:var(--text);font-size:13px;
+  cursor:pointer;font-family:inherit;transition:var(--transition)}
+.btn:hover{background:var(--surface2)}
+.btn-primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn-primary:hover{opacity:.85}
+.btn-danger{color:var(--red);border-color:var(--red-bg)}
+.btn-danger:hover{background:var(--red-bg)}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* Forms */
+.form-row{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+.form-label{font-size:12px;color:var(--text2);font-weight:500}
+.form-input{padding:8px 10px;border:0.5px solid var(--border2);
+  border-radius:var(--radius-sm);font-size:13px;font-family:inherit;
+  background:var(--surface);color:var(--text);width:100%;
+  transition:border .15s}
+.form-input:focus{outline:none;border-color:var(--blue)}
+.form-hint{font-size:11px;color:var(--text3)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;border-bottom:0.5px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle{width:36px;height:20px;border-radius:10px;background:var(--border2);
+  position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';width:16px;height:16px;border-radius:50%;
+  background:#fff;position:absolute;top:2px;left:2px;transition:left .2s}
+.toggle.on::after{left:18px}
+
+/* Events */
+.event-list{display:flex;flex-direction:column;gap:6px}
+.event-item{display:flex;align-items:center;gap:10px;padding:10px 12px;
+  background:var(--surface2);border-radius:var(--radius-sm)}
+.event-icon{width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;flex-shrink:0}
+.event-info{flex:1;min-width:0}
+.event-name{font-size:13px;font-weight:500}
+.event-device{font-size:12px;color:var(--text2)}
+.event-time{font-size:11px;color:var(--text3);white-space:nowrap}
+
+/* Health */
+.health-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px}
+.health-card{background:var(--surface2);border-radius:var(--radius-sm);padding:12px}
+.health-val{font-size:16px;font-weight:500;margin-bottom:2px}
+.health-lbl{font-size:11px;color:var(--text2)}
+
+/* Changelog */
+.cl-entry{border-left:2px solid var(--border2);padding:0 0 20px 20px;
+  position:relative;margin-left:8px}
+.cl-entry:last-child{padding-bottom:0}
+.cl-entry::before{content:'';width:8px;height:8px;border-radius:50%;
+  background:var(--border2);position:absolute;left:-5px;top:4px}
+.cl-entry.current::before{background:var(--blue)}
+.cl-version{font-size:14px;font-weight:500;margin-bottom:2px}
+.cl-date{font-size:12px;color:var(--text2);margin-bottom:10px}
+.cl-lines{display:flex;flex-direction:column;gap:6px}
+.cl-line{display:flex;gap:8px;font-size:13px;align-items:flex-start}
+.cl-tag{font-size:10px;font-weight:500;padding:2px 6px;border-radius:3px;
+  white-space:nowrap;flex-shrink:0;margin-top:1px}
+.tag-added{background:var(--green-bg);color:var(--green-text)}
+.tag-fixed{background:var(--blue-bg);color:var(--blue-text)}
+.tag-changed{background:var(--amber-bg);color:var(--amber-text)}
+.tag-removed{background:var(--red-bg);color:var(--red-text)}
+.tag-security{background:var(--purple-bg);color:var(--purple-text)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);
+  display:flex;align-items:center;justify-content:center;
+  z-index:200;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:14px;padding:24px;
+  width:100%;max-width:440px;border:0.5px solid var(--border);
+  transform:translateY(8px);transition:transform .2s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-title{font-size:15px;font-weight:500;margin-bottom:16px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+
+/* OTA Progress */
+.progress-wrap{height:6px;background:var(--border);border-radius:3px;
+  overflow:hidden;margin:10px 0}
+.progress-bar{height:100%;border-radius:3px;background:var(--blue);
+  transition:width .3s}
+
+/* Info/warn boxes */
+.info-box{border:0.5px solid var(--blue);background:var(--blue-bg);
+  border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;
+  color:var(--blue-text);margin:8px 0;line-height:1.6}
+.warn-box{border:0.5px solid var(--amber);background:var(--amber-bg);
+  border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;
+  color:var(--amber-text);margin:8px 0;line-height:1.6}
+
+/* Misc */
+.top-actions{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px}
+.top-actions h2{font-size:15px;font-weight:500}
+.section{display:none}.section.active{display:block}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin .6s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;color:var(--text2);padding:40px 0;font-size:13px}
+.loading{text-align:center;padding:40px 0}
+.loading::after{content:'';display:inline-block;width:20px;height:20px;
+  border:2px solid var(--border);border-top-color:var(--text2);
+  border-radius:50%;animation:spin .6s linear infinite}
+.settings-title{font-size:11px;font-weight:500;color:var(--text2);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;margin-top:16px}
+.settings-title:first-child{margin-top:0}
+</style>
+</head>
+<body>
+
+<!-- Toast container -->
+<div id="toastContainer"></div>
+
+<!-- LOGIN SPLASH -->
+<div id="loginView">
+  <div class="login-card">
+    <div class="login-logo">PresencePlatform <span>ESP32</span></div>
+    <div class="login-sub">Sign in to manage your device</div>
+    <div class="form-row">
+      <label class="form-label">Username</label>
+      <input id="loginUser" class="form-input" type="text" value="admin" autocomplete="username">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Password</label>
+      <input id="loginPass" class="form-input" type="password" autocomplete="current-password">
+    </div>
+    <div id="loginHint" style="font-size:12px;color:var(--text3);margin-bottom:8px;text-align:center">
+      Default password is <strong>changeme</strong>
+    </div>
+    <div id="loginError" style="display:none;color:#e55;font-size:12px;margin-bottom:8px;text-align:center"></div>
+    <button class="btn btn-primary" style="width:100%" id="loginBtn" onclick="doLogin()">
+      Sign in
+    </button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="appView" class="app">
+  <div class="header">
+    <div class="logo">PresencePlatform<span class="logo-ver" id="fwVersion"></span></div>
+    <div class="header-right">
+      <span id="deviceIpDisplay" style="font-size:11px;color:var(--text3)"></span>
+      <div id="uptimeBadge" class="uptime-badge" style="display:none"></div>
+      <div class="header-chip" id="c4Chip" style="display:none">
+        <div id="c4Dot" class="dot offline"></div>
+        <span>C4</span>
+      </div>
+      <div class="header-chip" id="mqttChip" style="display:none">
+        <div id="mqttDot" class="dot offline"></div>
+        <span>MQTT</span>
+      </div>
+      <div class="header-chip">
+        <div id="headerDot" class="dot unknown"></div>
+        <span id="headerLabel">Unknown</span>
+      </div>
+      <button class="theme-btn" onclick="cycleTheme()" id="themeBtn" title="Toggle theme">
+        <svg id="themeIcon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41M8 5a3 3 0 100 6 3 3 0 000-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn active" onclick="showTab('dashboard',this)">Dashboard</button>
+    <button class="nav-btn" onclick="showTab('devices',this)">Devices</button>
+    <button class="nav-btn" onclick="showTab('events',this)">Events</button>
+    <button class="nav-btn" onclick="showTab('settings',this)">Settings</button>
+    <button class="nav-btn" onclick="showTab('health',this)">Health</button>
+    <button class="nav-btn" onclick="showTab('ota',this)">Firmware Update</button>
+    <button class="nav-btn" onclick="showTab('changelog',this)">Changelog</button>
+  </div>
+
+  <div class="content">
+
+    <!-- Check for updates button (always visible in firmware tab) -->
+    <div id="checkUpdateRow" style="display:none;margin-bottom:14px">
+      <button class="btn" onclick="checkForUpdates()" id="checkUpdateBtn">↺ Check for Updates</button>
+      <span id="checkUpdateStatus" style="font-size:12px;color:var(--text2);margin-left:12px"></span>
+    </div>
+
+    <!-- Update banner (hidden by default) -->
+    <div id="updateBanner" style="display:none;background:var(--blue-bg);border:0.5px solid var(--blue);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;display:none;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--blue-text)">Update available</div>
+        <div id="updateBannerVersion" style="font-size:12px;color:var(--text2)"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="installUpdate()">Install now</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard" class="section active">
+      <div class="metrics">
+        <div class="metric">
+          <div id="occVal" class="metric-val">—</div>
+          <div class="metric-lbl">Occupancy</div>
+        </div>
+        <div class="metric">
+          <div id="homeCount" class="metric-val">—</div>
+          <div class="metric-lbl">People home</div>
+        </div>
+        <div class="metric">
+          <div id="totalCount" class="metric-val">—</div>
+          <div class="metric-lbl">Tracked devices</div>
+        </div>
+        <div class="metric">
+          <div id="rssiVal" class="metric-val">—</div>
+          <div class="metric-lbl">WiFi signal</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Device status</div>
+        <div id="dashDevices" class="device-list"><div class="loading"></div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="forcePoll()">↻ Poll now</button>
+        <button class="btn btn-sm" onclick="loadDashboard()">↺ Refresh</button>
+      </div>
+    </div>
+
+    <!-- DEVICES -->
+    <div id="tab-devices" class="section">
+      <div class="top-actions">
+        <h2>Tracked devices</h2>
+        <button class="btn btn-primary btn-sm" onclick="showAddDevice()">+ Add device</button>
+      </div>
+      <div id="devicesList" class="device-list"><div class="loading"></div></div>
+
+      <div style="margin-top:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:12px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">Network scanner</div>
+          <button class="btn btn-sm" onclick="loadScanner()">↺ Scan</button>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">
+          <span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px"><span style="width:8px;height:8px;border-radius:2px;background:var(--green-bg);border:1px solid var(--green);display:inline-block"></span>Tracked</span>
+          <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--blue-bg);border:1px solid var(--blue);display:inline-block"></span>Likely phone</span>
+        </div>
+        <div id="scannerList"><div style="font-size:13px;color:var(--text3)">Click Scan to discover devices on your network.</div></div>
+      </div>
+    </div>
+
+    <!-- EVENTS -->
+    <div id="tab-events" class="section">
+      <div class="top-actions">
+        <h2>Event history</h2>
+        <button class="btn btn-sm" onclick="loadEvents()">↺ Refresh</button>
+      </div>
+      <div id="eventsList" class="event-list"><div class="loading"></div></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="tab-settings" class="section">
+      <div class="card">
+        <div class="settings-title">Detection</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">Miss threshold <span style="color:var(--amber);font-size:10px" title="Requires reboot to apply">↺ reboot</span></label>
+            <input id="cfg-miss" class="form-input" type="number" min="1" max="20">
+            <span class="form-hint">Missed polls before absent</span>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Poll interval (seconds) <span style="color:var(--amber);font-size:10px" title="Requires reboot to apply">↺ reboot</span></label>
+            <input id="cfg-poll" class="form-input" type="number" min="30" max="600">
+          </div>
+        </div>
+        <div class="settings-title">Network</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">Hostname <span style="color:var(--amber);font-size:10px" title="Requires reboot to apply">↺ reboot</span></label>
+            <input id="cfg-hostname" class="form-input" type="text">
+            <span class="form-hint">Access at hostname.local</span>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Auto-update window <span style="color:var(--text3);font-size:10px">Updates only install during this time</span></label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="cfg-upd-start" class="form-input" type="number" min="0" max="23" value="2" style="width:70px">
+              <span style="color:var(--text3)">:00 to</span>
+              <input id="cfg-upd-end" class="form-input" type="number" min="0" max="23" value="4" style="width:70px">
+              <span style="color:var(--text3)">:00 (24hr)</span>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">Default: 2:00 AM – 4:00 AM. Set both to 0 for no restriction.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">HTTP port (web interface) <span style="color:var(--amber);font-size:10px" title="Requires reboot to apply">↺ reboot</span></label>
+            <input id="cfg-http" class="form-input" type="number" min="1" max="65535" value="8090">
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">Default: 8090. Access GUI at http://[IP]:[port]</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">TCP port (Control4) <span style="color:var(--amber);font-size:10px" title="Requires reboot to apply">↺ reboot</span></label>
+            <input id="cfg-tcp" class="form-input" type="number">
+          </div>
+        </div>
+        <div class="settings-title">Header indicators</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Choose which integration status chips appear in the header</div>
+        <div class="toggle-row">
+          <span class="form-label">Show Control4 (TCP) status</span>
+          <div id="chip-c4-toggle" class="toggle on" onclick="toggleChip('c4')"></div>
+        </div>
+        <div class="toggle-row">
+          <span class="form-label">Show MQTT status</span>
+          <div id="chip-mqtt-toggle" class="toggle on" onclick="toggleChip('mqtt')"></div>
+        </div>
+        <div class="toggle-row">
+          <span class="form-label">Show uptime badge</span>
+          <div id="chip-uptime-toggle" class="toggle on" onclick="toggleChip('uptime')"></div>
+        </div>
+        <div class="settings-title">Time</div>
+        <div class="form-row" style="max-width:280px">
+          <label class="form-label">Timezone</label>
+          <select id="cfg-tz" class="form-input">
+            <option value="EST5EDT,M3.2.0,M11.1.0">Eastern (ET)</option>
+            <option value="CST6CDT,M3.2.0,M11.1.0">Central (CT)</option>
+            <option value="MST7MDT,M3.2.0,M11.1.0">Mountain (MT)</option>
+            <option value="PST8PDT,M3.2.0,M11.1.0">Pacific (PT)</option>
+            <option value="MST7">Arizona (no DST)</option>
+            <option value="HST10">Hawaii (HT)</option>
+            <option value="AKST9AKDT,M3.2.0,M11.1.0">Alaska (AKT)</option>
+          </select>
+        </div>
+        <div class="settings-title">Security</div>
+        <div class="form-row" style="max-width:280px">
+          <label class="form-label">New password</label>
+          <input id="cfg-pass" class="form-input" type="password" placeholder="Leave blank to keep current">
+          <span class="form-hint">Minimum 8 characters</span>
+        </div>
+        <div class="settings-title">MQTT</div>
+        <div class="toggle-row">
+          <span class="form-label">Enable MQTT <span style="color:var(--amber);font-size:10px" title="Requires reboot to apply">↺ reboot</span></span>
+          <div id="mqtt-toggle" class="toggle" onclick="toggleMqtt()"></div>
+        </div>
+        <div id="mqtt-fields" style="display:none;margin-top:12px">
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="form-label">Broker address</label>
+              <input id="cfg-mqtt-host" class="form-input" type="text" placeholder="192.168.1.x">
+            </div>
+            <div class="form-row">
+              <label class="form-label">Port</label>
+              <input id="cfg-mqtt-port" class="form-input" type="number" value="1883">
+            </div>
+            <div class="form-row">
+              <label class="form-label">Username</label>
+              <input id="cfg-mqtt-user" class="form-input" type="text" placeholder="mqtt">
+              <span class="form-hint">Leave blank for anonymous</span>
+            </div>
+            <div class="form-row">
+              <label class="form-label">Password</label>
+              <input id="cfg-mqtt-pass" class="form-input" type="password" placeholder="Leave blank to keep current">
+            </div>
+            <div class="form-row">
+              <label class="form-label">Topic root</label>
+              <input id="cfg-mqtt-root" class="form-input" type="text" placeholder="presence">
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:18px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="saveConfig()">Save settings</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="settings-title">Automatic updates</div>
+        <div class="toggle-row">
+          <span class="form-label">Allow automatic updates <span style="color:var(--amber);font-size:10px" title="Requires reboot to apply">↺ reboot</span></span>
+          <div id="autoupdate-toggle" class="toggle" onclick="toggleAutoUpdate()"></div>
+        </div>
+        <p style="font-size:12px;color:var(--text2);margin-top:8px">When enabled the device checks GitHub for updates every 24 hours and installs them automatically. Requires internet access.</p>
+
+        <div class="settings-title">Backup &amp; Restore</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" onclick="doBackup()">↓ Export backup</button>
+          <label class="btn" style="cursor:pointer">
+            ↑ Import backup
+            <input type="file" accept=".json" style="display:none" onchange="doRestore(event)">
+          </label>
+        </div>
+        <p style="font-size:12px;color:var(--text2);margin-top:10px">
+          Export before every firmware update. Backup includes all devices and settings.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="settings-title">Setup wizard</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn" onclick="showWizard()">▶ Run setup wizard</button>
+          <span style="font-size:12px;color:var(--text2)">Step-by-step guide for new installs and adding devices</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="settings-title">Device</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-danger" onclick="rebootDevice()">↺ Reboot device</button>
+          <button class="btn btn-danger" onclick="resetWifi()">✕ Reset WiFi</button>
+          <span style="font-size:12px;color:var(--text2)">Reboot applies settings. Reset WiFi launches setup portal.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEALTH -->
+    <div id="tab-health" class="section">
+      <div class="top-actions">
+        <h2>Device health</h2>
+        <button class="btn btn-sm" onclick="loadHealth()">↺ Refresh</button>
+      </div>
+      <div id="healthGrid" class="health-grid"><div class="loading"></div></div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-title">WiFi signal history (last hour)</div>
+        <canvas id="rssiCanvas" width="800" height="160" style="width:100%;height:160px"></canvas>
+        <div id="rssiEmpty" style="display:none;text-align:center;color:var(--text2);font-size:13px;padding:20px">No signal history yet — check back after a minute.</div>
+      </div>
+    </div>
+
+    <!-- OTA -->
+    <div id="tab-ota" class="section">
+      <div class="top-actions"><h2>Firmware update</h2></div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title">How to get update files</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.7">
+          In Arduino IDE: <strong>Sketch → Export Compiled Binary</strong> — saves a <code>.bin</code> file next to your <code>.ino</code>.<br>
+          For filesystem updates: use the mklittlefs tool to build a LittleFS image.
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title">Step 1 — Firmware <span style="font-size:11px;font-weight:400;color:var(--text2)">(always required)</span></div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Upload the <code>.bin</code> firmware file. Device reboots when complete.</div>
+        <label class="btn" style="cursor:pointer">
+          Choose firmware .bin
+          <input type="file" id="fwFile" accept=".bin" style="display:none" onchange="updateFwLabel(this)">
+        </label>
+        <span id="fwFileName" style="font-size:12px;color:var(--text2);margin-left:8px">No file chosen</span>
+        <div id="fwProgress" style="display:none;margin-top:12px">
+          <div class="progress-wrap"><div id="fwBar" class="progress-bar" style="width:0%"></div></div>
+          <div id="fwStatus" style="font-size:12px;color:var(--text2);margin-top:4px">Uploading...</div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="uploadFirmware()">Upload firmware</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Step 2 — Filesystem <span style="font-size:11px;font-weight:400;color:var(--text2)">(only when GUI changed)</span></div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Upload the LittleFS <code>.bin</code> filesystem file.</div>
+        <label class="btn" style="cursor:pointer">
+          Choose filesystem .bin
+          <input type="file" id="fsFile" accept=".bin" style="display:none" onchange="updateFsLabel(this)">
+        </label>
+        <span id="fsFileName" style="font-size:12px;color:var(--text2);margin-left:8px">No file chosen</span>
+        <div id="fsProgress" style="display:none;margin-top:12px">
+          <div class="progress-wrap"><div id="fsBar" class="progress-bar" style="width:0%"></div></div>
+          <div id="fsStatus" style="font-size:12px;color:var(--text2);margin-top:4px">Uploading...</div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="uploadFilesystem()">Upload filesystem</button>
+      </div>
+      <div class="warn-box">Before updating, export a config backup from Settings. Failed updates roll back automatically.</div>
+    </div>
+
+    <!-- CHANGELOG -->
+    <div id="tab-changelog" class="section">
+      <div class="top-actions"><h2>Firmware changelog</h2></div>
+      <div id="changelogList"><div class="loading"></div></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<!-- ADD DEVICE MODAL -->
+<div id="addModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">Add tracked device</div>
+    <div class="form-row">
+      <label class="form-label">Friendly name</label>
+      <input id="add-name" class="form-input" type="text" placeholder="Jacob's iPhone">
+    </div>
+    <div class="form-row">
+      <label class="form-label">MAC address</label>
+      <input id="add-mac" class="form-input" type="text" placeholder="AA:BB:CC:DD:EE:FF">
+      <span class="form-hint">iPhone: Settings → General → About → Wi-Fi Address. Disable Private Wi-Fi Address first.</span>
+    </div>
+    <div class="form-row">
+      <label class="form-label">IP address (DHCP reserved)</label>
+      <input id="add-ip" class="form-input" type="text" placeholder="192.168.1.101">
+    </div>
+
+    <div id="add-error" style="display:none" class="login-error"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="hideAddDevice()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddDevice()">Add device</button>
+    </div>
+  </div>
+</div>
+
+<!-- Wizard resume button -->
+<div id="wizardResume" style="display:none;position:fixed;bottom:24px;left:24px;z-index:150">
+  <button class="btn btn-primary" onclick="resumeWizard()" style="box-shadow:0 4px 12px rgba(0,0,0,.25);padding:10px 16px">
+    ▶ Resume Setup Wizard
+  </button>
+</div>
+
+<!-- ONBOARDING WIZARD -->
+<div id="wizardModal" class="modal-overlay">
+  <div class="modal" style="max-width:520px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="modal-title" id="wizardTitle">Welcome to PresencePlatform</div>
+      <button class="btn btn-sm" onclick="closeWizard()" style="padding:4px 8px">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px">
+      Step <span id="wizardStepNum">1</span> of <span id="wizardStepTotal">5</span>
+    </div>
+    <div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden">
+      <div id="wizardProgress" style="height:100%;background:var(--blue);border-radius:2px;transition:width .3s;width:20%"></div>
+    </div>
+    <div id="wizardContent"></div>
+    <div style="display:flex;gap:8px;justify-content:space-between;margin-top:20px">
+      <button class="btn" id="wizardBack" onclick="wizardBack()" style="display:none">← Back</button>
+      <button class="btn btn-primary" id="wizardNext" onclick="wizardNext()" style="margin-left:auto">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// State
+// ============================================================
+var token = '';
+var mqttOn = false;
+var autoUpdateOn = false;
+var currentTheme = 'auto';
+var prevOccupancy = null;
+var prevDeviceStates = {};
+var openNerdFacts = {}; // tracks which device nerd facts panels are open
+var globalMissThreshold = 15; // loaded from config
+
+// ============================================================
+// Theme
+// ============================================================
+function initTheme() {
+  var saved = localStorage.getItem('pp_theme') || 'auto';
+  setTheme(saved);
+}
+
+function setTheme(t) {
+  currentTheme = t;
+  localStorage.setItem('pp_theme', t);
+  var isDark = t === 'dark' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  updateThemeIcon();
+}
+
+function cycleTheme() {
+  var next = currentTheme === 'auto' ? 'dark' : currentTheme === 'dark' ? 'light' : 'auto';
+  setTheme(next);
+  toast(next === 'auto' ? 'Theme: Auto' : next === 'dark' ? 'Theme: Dark' : 'Theme: Light', 'info');
+}
+
+function updateThemeIcon() {
+  var icon = document.getElementById('themeIcon');
+  if (!icon) return;
+  if (currentTheme === 'dark') {
+    // Clear crescent moon
+    icon.innerHTML = '<path d="M13.5 10.5A6.5 6.5 0 015.5 2.5a.5.5 0 00-.64.62 6 6 0 108.12 8.12.5.5 0 00-.48-.74z" fill="currentColor"/>';
+  } else if (currentTheme === 'light') {
+    // Bright sun with clear rays
+    icon.innerHTML = '<circle cx="8" cy="8" r="3" fill="currentColor"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.4 3.4l1.2 1.2M11.4 11.4l1.2 1.2M3.4 12.6l1.2-1.2M11.4 4.6l1.2-1.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>';
+  } else {
+    // Auto — computer monitor symbol (follows system)
+    icon.innerHTML = '<rect x="2" y="3" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M5 14h6M8 11v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>';
+  }
+}
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+  if (currentTheme === 'auto') setTheme('auto');
+});
+
+// ============================================================
+// Toast notifications
+// ============================================================
+function toast(msg, type) {
+  type = type || 'info';
+  var el = document.createElement('div');
+  el.className = 'toast toast-' + type;
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(function() { el.classList.add('show'); }, 10);
+  setTimeout(function() {
+    el.classList.remove('show');
+    setTimeout(function() { el.remove(); }, 300);
+  }, 3000);
+}
+
+// ============================================================
+// Auth — persist token in localStorage
+// ============================================================
+function api(method, path, body) {
+  var opts = { method: method, headers: { 'Authorization': 'Bearer ' + token } };
+  if (body) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  return fetch(path, opts).then(function(r) { return r.json(); });
+}
+
+function doLogin() {
+  var u = document.getElementById('loginUser').value;
+  var p = document.getElementById('loginPass').value;
+  var btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Signing in...';
+
+  fetch('/api/v1/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: u, password: p })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.token) {
+      token = d.token;
+      localStorage.setItem('pp_token', token);
+      showApp();
+    } else {
+      showLoginError('Invalid username or password');
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+    }
+  }).catch(function() {
+    showLoginError('Could not reach device');
+    btn.disabled = false;
+    btn.textContent = 'Sign in';
+  });
+}
+
+function showLoginError(msg) {
+  var el = document.getElementById('loginError');
+  el.innerHTML = msg + ". Default password is <strong>changeme</strong>.";
+  el.style.display = 'block';
+}
+
+// Init login hint visibility
+initLoginHint();
+
+function tryAutoLogin() {
+  var saved = localStorage.getItem('pp_token');
+  if (!saved) return;
+  // Verify token is still valid
+  fetch('/api/v1/health', {
+    headers: { 'Authorization': 'Bearer ' + saved }
+  }).then(function(r) {
+    if (r.status === 200) {
+      token = saved;
+      showApp();
+    }
+    // If 401, fall through to show login
+  }).catch(function() {
+    // Can't reach device — still show login
+  });
+}
+
+function initLoginHint() {
+  // Show default password hint only on first-ever visit
+  if (localStorage.getItem('pp_firstlogin')) {
+    var hint = document.getElementById('loginHint');
+    if (hint) hint.style.display = 'none';
+  }
+}
+
+function showApp() {
+  var login = document.getElementById('loginView');
+  var app = document.getElementById('appView');
+  login.classList.add('fade-out');
+  app.classList.add('visible');
+  setTimeout(function() { login.style.display = 'none'; }, 300);
+  loadDashboard();
+  setInterval(loadDashboard, 30000);
+  checkFirstRun();
+  // Mark as logged in before — hides the default password hint on next visit
+  localStorage.setItem('pp_firstlogin', '1');
+}
+
+document.getElementById('loginPass').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ============================================================
+// Tab navigation
+// ============================================================
+function showTab(name, btn) {
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'devices')   loadDevices();
+  if (name === 'events')    loadEvents();
+  if (name === 'settings')  loadConfig();
+  if (name === 'health')    { loadHealth(); loadRssiChart(); setTimeout(_renderRssiChart, 200); }
+  if (name === 'changelog') loadChangelog();
+}
+
+// ============================================================
+// Helpers
+// ============================================================
+function stateBadge(state) {
+  var map = { present:'badge-green', absent:'badge-red', suspect:'badge-amber', unknown:'badge-gray' };
+  return '<span class="badge ' + (map[state]||'badge-gray') + '">' + state + '</span>';
+}
+
+function initials(name) {
+  return name.split(' ').map(function(w) { return w[0]||''; }).slice(0,2).join('').toUpperCase() || '?';
+}
+
+function timeAgo(epochSec) {
+  if (!epochSec) return 'never';
+  var diff = Math.floor(Date.now()/1000) - epochSec;
+  if (diff < 60)    return diff + 's ago';
+  if (diff < 3600)  return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
+}
+
+function formatUptime(sec) {
+  if (!sec) return '--';
+  var d = Math.floor(sec/86400), h = Math.floor((sec%86400)/3600),
+      m = Math.floor((sec%3600)/60);
+  if (d > 0) return d + 'd ' + h + 'h';
+  if (h > 0) return h + 'h ' + m + 'm';
+  return m + 'm ' + (sec%60) + 's';
+}
+
+// ============================================================
+// Device card renderer (with Nerd Facts)
+// ============================================================
+function renderDeviceCard(d, showDelete, prefix) {
+  var conf    = d.confidence || 0;
+  var barCol  = conf > 70 ? 'var(--green)' : conf > 40 ? 'var(--amber)' : 'var(--red)';
+  var nerdId  = (prefix || 'nerd') + '_' + d.id;
+
+  // Method badge color
+  var mCol = { arp:'var(--green)', mdns:'var(--blue)', passive:'var(--amber)', ping:'var(--red)' };
+
+  var deleteBtn = showDelete
+    ? '<button class="btn btn-danger btn-sm" data-id="' + d.id + '" data-name="' + d.name.replace(/"/g,'&quot;') + '" onclick="deleteDevice(this.dataset.id,this.dataset.name)">Remove</button>'
+    : '';
+
+  return '<div class="device-card">' +
+    '<div class="device-main">' +
+      '<div class="device-avatar ' + d.state + '">' + initials(d.name) + '</div>' +
+      '<div class="device-info">' +
+        '<div class="device-name">' + d.name + '</div>' +
+        '<div class="device-meta">' + d.ip + ' &nbsp;·&nbsp; ' + d.mac + '</div>' +
+      '</div>' +
+      '<div class="device-right">' +
+        stateBadge(d.state) +
+        (d.state !== 'absent' ? '<div class="conf-bar-wrap"><div class="conf-bar" style="width:' + conf + '%;background:' + barCol + '"></div></div>' : '') +
+        '<div class="device-time">' + (d.last_seen ? timeAgo(d.last_seen) : '') + '</div>' +
+        deleteBtn +
+      '</div>' +
+    '</div>' +
+    '<div class="nerd-toggle" onclick="toggleNerd(\'' + nerdId + '\')">' +
+      '<span>🤓</span><span>Nerd Facts</span><span style="margin-left:auto" id="' + nerdId + '_arrow">▸</span>' +
+    '</div>' +
+    '<div class="nerd-facts" id="' + nerdId + '">' +
+      '<div class="nerd-grid">' +
+        '<div class="nerd-item"><div class="nerd-label">Detection method</div>' +
+          '<div class="nerd-value" style="color:' + (mCol[d.method]||'var(--text)') + '">' + (d.method || 'none') + '</div></div>' +
+        '<div class="nerd-item"><div class="nerd-label">Confidence</div>' +
+          '<div class="nerd-value">' + conf + '%</div>' +
+          '<div class="nerd-bar-wrap"><div class="nerd-bar" style="width:' + conf + '%;background:' + barCol + '"></div></div></div>' +
+        '<div class="nerd-item"><div class="nerd-label">Miss count</div>' +
+          '<div class="nerd-value">' + (d.state === 'absent' ? 'threshold reached' : d.miss_count !== undefined ? d.miss_count + ' / ' + (d.miss_threshold || globalMissThreshold || 15) : '--') + '</div></div>' +
+        '<div class="nerd-item"><div class="nerd-label">Last seen</div>' +
+          '<div class="nerd-value" style="font-size:12px">' + (d.last_seen ? timeAgo(d.last_seen) : 'never') + '</div></div>' +
+        '<div class="nerd-item"><div class="nerd-label">Added</div>' +
+          '<div class="nerd-value" style="font-size:12px">' + (d.added_epoch && d.added_epoch > 0 ? new Date(d.added_epoch*1000).toLocaleDateString() : 'unknown') + '</div></div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function toggleChip(name) {
+  var key     = 'pp_chip_' + name;
+  var current = localStorage.getItem(key) !== 'false';
+  var newVal  = !current;
+  localStorage.setItem(key, newVal ? 'true' : 'false');
+  var toggle  = document.getElementById('chip-' + name + '-toggle');
+  if (toggle) toggle.className = 'toggle' + (newVal ? ' on' : '');
+  loadDashboard();
+}
+
+function initChipToggles() {
+  ['c4','mqtt','uptime'].forEach(function(name) {
+    var val    = localStorage.getItem('pp_chip_' + name) !== 'false';
+    var toggle = document.getElementById('chip-' + name + '-toggle');
+    if (toggle) toggle.className = 'toggle' + (val ? ' on' : '');
+  });
+}
+
+function toggleNerd(id) {
+  var el    = document.getElementById(id);
+  var arrow = document.getElementById(id + '_arrow');
+  var open  = el.classList.toggle('open');
+  if (arrow) arrow.textContent = open ? '▾' : '▸';
+  // Persist open state using the device id portion
+  var devKey = id.replace('dash_','').replace('devtab_','');
+  openNerdFacts[devKey] = open;
+}
+
+// ============================================================
+// Dashboard
+// ============================================================
+function loadDashboard() {
+  api('GET', '/api/v1/status').then(function(d) {
+    var occ = d.occupancy || 'unknown';
+    var occLabel = occ.charAt(0).toUpperCase() + occ.slice(1);
+    document.getElementById('occVal').textContent = occLabel;
+    document.getElementById('occVal').style.color = occ === 'home' ? 'var(--green)' : occ === 'away' ? 'var(--red)' : 'var(--amber)';
+    document.getElementById('homeCount').textContent = d.device_count || 0;
+    document.getElementById('totalCount').textContent = d.total_devices || 0;
+    var dot = document.getElementById('headerDot');
+    dot.className = 'dot ' + occ;
+    document.getElementById('headerLabel').textContent = occ.toUpperCase();
+    var el = document.getElementById('dashDevices');
+    if (!d.devices || d.devices.length === 0) {
+      el.innerHTML = '<div class="empty">No devices tracked. Add devices in the Devices tab.</div>';
+    } else {
+      el.innerHTML = d.devices.map(function(dev) { return renderDeviceCard(dev, false, 'dash'); }).join('');
+    // Restore open nerd facts panels
+    d.devices.forEach(function(dev) {
+      if (openNerdFacts[dev.id]) {
+        var el2 = document.getElementById('dash_' + dev.id);
+        var arrow = document.getElementById('dash_' + dev.id + '_arrow');
+        if (el2) { el2.classList.add('open'); }
+        if (arrow) arrow.textContent = '▾';
+      }
+    });
+    }
+
+    // Detection event toasts — compare to previous state
+    if (prevOccupancy !== null) {
+      // Global occupancy change
+      if (d.occupancy === 'home' && prevOccupancy === 'away') {
+        toast('House is now occupied', 'success');
+      } else if (d.occupancy === 'away' && prevOccupancy === 'home') {
+        toast('Everyone away — house is empty', 'error');
+      }
+      // Per-device state changes
+      if (d.devices) {
+        d.devices.forEach(function(dev) {
+          var prev = prevDeviceStates[dev.id];
+          var isHome = dev.state === 'present' || dev.state === 'suspect';
+          var wasHome = prev === 'present' || prev === 'suspect';
+          if (isHome && (prev === 'absent' || prev === 'unknown' || prev === undefined) && prevOccupancy !== null) {
+            toast(dev.name + ' arrived home', 'success');
+          } else if (!isHome && dev.state === 'absent' && wasHome) {
+            toast(dev.name + ' left', 'info');
+          }
+          prevDeviceStates[dev.id] = dev.state;
+        });
+      }
+    }
+    prevOccupancy = d.occupancy;
+  });
+
+  api('GET', '/api/v1/health').then(function(h) {
+    // Firmware version
+    if (h.fw_version) document.getElementById('fwVersion').textContent = ' v' + h.fw_version;
+    // IP
+    if (h.ip) document.getElementById('deviceIpDisplay').textContent = h.ip;
+    // RSSI
+    var rssi = h.rssi || 0;
+    var rssiLabel = rssi > -60 ? 'Excellent' : rssi > -70 ? 'Good' : rssi > -80 ? 'Fair' : 'Poor';
+    document.getElementById('rssiVal').textContent = rssiLabel;
+    document.getElementById('rssiVal').style.color = rssi > -70 ? 'var(--green)' : rssi > -80 ? 'var(--amber)' : 'var(--red)';
+    // Uptime badge
+    if (h.uptime_sec) {
+      var badge = document.getElementById('uptimeBadge');
+      badge.textContent = '↑ ' + formatUptime(h.uptime_sec);
+      badge.style.display = 'block';
+    }
+    // C4 TCP status chip
+    if (h.tcp_clients !== undefined) {
+      var c4chip = document.getElementById('c4Chip');
+      var c4dot  = document.getElementById('c4Dot');
+      var showC4 = localStorage.getItem('pp_chip_c4') !== 'false';
+      c4chip.style.display = showC4 ? 'flex' : 'none';
+      c4dot.className = 'dot ' + (h.tcp_clients > 0 ? 'online' : 'offline');
+    }
+    // MQTT status chip
+    var mqttChip = document.getElementById('mqttChip');
+    var mqttDot  = document.getElementById('mqttDot');
+    var showMqtt = localStorage.getItem('pp_chip_mqtt') !== 'false';
+    if (h.mqtt_enabled && showMqtt) {
+      mqttChip.style.display = 'flex';
+      mqttDot.className = 'dot ' + (h.mqtt_connected ? 'online' : 'offline');
+    } else {
+      mqttChip.style.display = 'none';
+    }
+    // Update available banner
+    if (h.update_available && h.latest_version) {
+      var banner = document.getElementById('updateBanner');
+      document.getElementById('updateBannerVersion').textContent = 'v' + h.latest_version + ' is available';
+      banner.style.display = 'flex';
+    } else {
+      document.getElementById('updateBanner').style.display = 'none';
+    }
+    // Uptime badge visibility
+    var showUptime = localStorage.getItem('pp_chip_uptime') !== 'false';
+    document.getElementById('uptimeBadge').style.display = (h.uptime_sec && showUptime) ? 'block' : 'none';
+  });
+}
+
+// ============================================================
+// Devices
+// ============================================================
+function loadDevices() {
+  // Use /api/v1/status for live data (miss counts, confidence, state)
+  api('GET', '/api/v1/status').then(function(s) {
+    var d = s.devices || [];
+    var el = document.getElementById('devicesList');
+    if (!d || d.length === 0) {
+      el.innerHTML = '<div class="empty">No devices yet. Add your first device.</div>';
+    } else {
+      el.innerHTML = d.map(function(dev) { return renderDeviceCard(dev, true, 'devtab'); }).join('');
+      // Restore open nerd facts panels
+      d.forEach(function(dev) {
+        if (openNerdFacts[dev.id]) {
+          var el2 = document.getElementById('devtab_' + dev.id);
+          var arrow = document.getElementById('devtab_' + dev.id + '_arrow');
+          if (el2) { el2.classList.add('open'); }
+          if (arrow) arrow.textContent = '▾';
+        }
+      });
+    }
+  });
+}
+
+function deleteDevice(id, name) {
+  if (!confirm('Remove ' + name + ' from tracking?')) return;
+  api('DELETE', '/api/v1/devices/' + id).then(function(r) {
+    if (r.ok) {
+      toast(name + ' removed', 'success');
+      loadDevices();
+    } else {
+      toast('Failed to remove device', 'error');
+    }
+  });
+}
+
+// ============================================================
+// Events
+// ============================================================
+function loadEvents() {
+  api('GET', '/api/v1/events').then(function(events) {
+    var el = document.getElementById('eventsList');
+    if (!events || events.length === 0) {
+      el.innerHTML = '<div class="empty">No events recorded yet.</div>';
+      return;
+    }
+    var evColors = {
+      first_arrival:'green', last_departure:'red', person_arrived:'green',
+      person_departed:'red', anyone_home:'green', everyone_away:'red',
+      comm_error:'red', comm_restored:'green', device_added:'blue'
+    };
+    el.innerHTML = events.slice().reverse().map(function(ev) {
+      var col = evColors[ev.event] || 'gray';
+      var bgVar  = col==='green'?'var(--green-bg)':col==='red'?'var(--red-bg)':col==='blue'?'var(--blue-bg)':'var(--surface2)';
+      var colVar = col==='green'?'var(--green)':col==='red'?'var(--red)':col==='blue'?'var(--blue)':'var(--text2)';
+      return '<div class="event-item">' +
+        '<div class="event-icon" style="background:' + bgVar + ';color:' + colVar + '">●</div>' +
+        '<div class="event-info">' +
+          '<div class="event-name">' + ev.event + '</div>' +
+          '<div class="event-device">' + (ev.device_name || ev.device_id || 'global') + '</div>' +
+        '</div>' +
+        '<div class="event-time">' + (ev.timestamp ? timeAgo(ev.timestamp) : '') + '</div>' +
+      '</div>';
+    }).join('');
+  });
+}
+
+// ============================================================
+// Settings
+// ============================================================
+function loadConfig() {
+  api('GET', '/api/v1/config').then(function(c) {
+    document.getElementById('cfg-miss').value     = c.miss_threshold || 15;
+    globalMissThreshold = c.miss_threshold || 15;
+    document.getElementById('cfg-poll').value     = c.poll_interval_sec || 180;
+    document.getElementById('cfg-hostname').value = c.hostname || '';
+    document.getElementById('cfg-http').value     = c.http_port || 8090;
+    document.getElementById('cfg-upd-start').value = (c.update_window_start !== undefined) ? c.update_window_start : 2;
+    document.getElementById('cfg-upd-end').value   = (c.update_window_end !== undefined) ? c.update_window_end : 4;
+    document.getElementById('cfg-tcp').value      = c.tcp_port || 4999;
+    if (c.timezone) document.getElementById('cfg-tz').value = c.timezone;
+    mqttOn = c.mqtt_enabled || false;
+    updateMqttToggle();
+    document.getElementById('cfg-mqtt-host').value = c.mqtt_broker || '';
+    document.getElementById('cfg-mqtt-port').value = c.mqtt_port || 1883;
+    document.getElementById('cfg-mqtt-user').value = c.mqtt_user || '';
+    document.getElementById('cfg-mqtt-root').value = c.mqtt_topic_root || 'presence';
+  });
+}
+
+function toggleAutoUpdate() {
+  autoUpdateOn = !autoUpdateOn;
+  updateAutoUpdateToggle();
+}
+
+function updateAutoUpdateToggle() {
+  document.getElementById('autoupdate-toggle').className = 'toggle' + (autoUpdateOn ? ' on' : '');
+}
+
+function checkForUpdates() {
+  var btn    = document.getElementById('checkUpdateBtn');
+  var status = document.getElementById('checkUpdateStatus');
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+  status.textContent = '';
+  api('POST', '/api/v1/update/check').then(function(r) {
+    btn.disabled = false;
+    btn.textContent = '↺ Check for Updates';
+    if (r && r.update_available) {
+      status.textContent = 'Update available: v' + r.latest_version;
+      status.style.color = 'var(--blue)';
+      // Show update banner
+      var banner = document.getElementById('updateBanner');
+      document.getElementById('updateBannerVersion').textContent = 'v' + r.latest_version + ' is available';
+      banner.style.display = 'flex';
+    } else {
+      status.textContent = 'Already up to date.';
+      status.style.color = 'var(--green)';
+    }
+  }).catch(function() {
+    btn.disabled = false;
+    btn.textContent = '↺ Check for Updates';
+    status.textContent = 'Check failed — verify internet connection.';
+    status.style.color = 'var(--red, #e55)';
+  });
+}
+
+function installUpdate() {
+  if (!confirm('Install update now? The device will reboot when complete.')) return;
+  api('POST', '/api/v1/update/install').then(function() {
+    toast('Installing update — device will reboot', 'info');
+  });
+}
+
+function toggleMqtt() {
+  mqttOn = !mqttOn;
+  updateMqttToggle();
+}
+
+function updateMqttToggle() {
+  document.getElementById('mqtt-toggle').className = 'toggle' + (mqttOn ? ' on' : '');
+  document.getElementById('mqtt-fields').style.display = mqttOn ? 'block' : 'none';
+}
+
+function saveConfig() {
+  var body = {
+    miss_threshold:    parseInt(document.getElementById('cfg-miss').value),
+    poll_interval_sec: parseInt(document.getElementById('cfg-poll').value),
+    hostname:          document.getElementById('cfg-hostname').value,
+    http_port:              parseInt(document.getElementById('cfg-http').value),
+    update_window_start:    parseInt(document.getElementById('cfg-upd-start').value),
+    update_window_end:      parseInt(document.getElementById('cfg-upd-end').value),
+    tcp_port:          parseInt(document.getElementById('cfg-tcp').value),
+    mqtt_enabled:      mqttOn,
+    mqtt_broker:       document.getElementById('cfg-mqtt-host').value,
+    mqtt_port:         parseInt(document.getElementById('cfg-mqtt-port').value),
+    mqtt_user:         document.getElementById('cfg-mqtt-user').value,
+    mqtt_password:     document.getElementById('cfg-mqtt-pass').value,
+    mqtt_topic_root:   document.getElementById('cfg-mqtt-root').value,
+    auto_update:       autoUpdateOn,
+    timezone:          document.getElementById('cfg-tz').value
+  };
+  var pass = document.getElementById('cfg-pass').value;
+  if (pass.length >= 8) body.admin_password = pass;
+
+  api('POST', '/api/v1/config', body).then(function(r) {
+    if (r.ok) {
+      toast('Settings saved', 'success');
+      document.getElementById('cfg-pass').value = '';
+    } else {
+      toast('Failed to save settings', 'error');
+    }
+  });
+}
+
+function doBackup() {
+  window.location.href = '/api/v1/config/backup';
+}
+
+function doRestore(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    fetch('/api/v1/config/restore', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: ev.target.result
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      if (d.ok) toast('Restore complete. Reboot recommended.', 'success');
+      else toast('Restore failed: ' + d.error, 'error');
+    });
+  };
+  reader.readAsText(file);
+}
+
+function rebootDevice() {
+  if (!confirm('Reboot the device? It will be offline for about 15 seconds.')) return;
+  api('POST', '/api/v1/reboot').then(function() {
+    toast('Device is rebooting...', 'info');
+  });
+}
+
+function resetWifi() {
+  if (!confirm('Reset WiFi credentials? The device will reboot into setup portal mode.')) return;
+  api('POST', '/api/v1/config', { wifi_reset: true }).then(function() {
+    api('POST', '/api/v1/reboot').then(function() {
+      toast('WiFi reset. Connect to PresenceSetup network.', 'info');
+    });
+  });
+}
+
+// ============================================================
+// Health
+// ============================================================
+function loadHealth() {
+  api('GET', '/api/v1/health').then(function(h) {
+    var items = [
+      { val: formatUptime(h.uptime_sec),                          lbl: 'Uptime' },
+      { val: h.rssi + ' dBm',                                     lbl: 'WiFi signal' },
+      { val: h.ip,                                                 lbl: 'IP address' },
+      { val: Math.round(h.free_heap/1024) + ' KB',                lbl: 'Free heap' },
+      { val: Math.round(h.min_heap/1024) + ' KB',                 lbl: 'Min heap (peak use)' },
+      { val: h.fw_version,                                         lbl: 'Firmware version' },
+      { val: h.ntp_synced ? 'Synced' : 'Not synced',              lbl: 'NTP time sync' },
+      { val: h.current_time || '--',                               lbl: 'Current time' },
+      { val: h.mqtt_connected ? 'Connected' : (h.mqtt_enabled ? 'Disconnected' : 'Disabled'), lbl: 'MQTT broker' },
+      { val: (h.tcp_clients !== undefined ? h.tcp_clients : '--') + ' client(s)', lbl: 'TCP connections (C4)' },
+      { val: h.mac,                                                lbl: 'ESP32 MAC' }
+    ];
+    document.getElementById('healthGrid').innerHTML = items.map(function(i) {
+      return '<div class="health-card"><div class="health-val">' + i.val + '</div>' +
+             '<div class="health-lbl">' + i.lbl + '</div></div>';
+    }).join('');
+  });
+}
+
+// ============================================================
+// Changelog
+// ============================================================
+function loadChangelog() {
+  fetch('/changelog').then(function(r) { return r.json(); }).then(function(entries) {
+    var el = document.getElementById('changelogList');
+    if (!entries || entries.length === 0) {
+      el.innerHTML = '<div class="empty">No changelog found.</div>';
+      return;
+    }
+    var tagColors = {
+      added:'tag-added', fixed:'tag-fixed', changed:'tag-changed',
+      removed:'tag-removed', security:'tag-security'
+    };
+    el.innerHTML = entries.map(function(e, idx) {
+      var lines = (e.entries||[]).map(function(l) {
+        return '<div class="cl-line"><span class="cl-tag ' + (tagColors[l.type]||'tag-fixed') + '">' +
+               l.type + '</span><span>' + l.text + '</span></div>';
+      }).join('');
+      return '<div class="cl-entry' + (idx===0?' current':'') + '">' +
+        '<div class="cl-version">v' + e.version +
+          (idx===0?' <span style="font-size:11px;font-weight:400;color:var(--blue)">current</span>':'') +
+        '</div>' +
+        '<div class="cl-date">' + e.date + '</div>' +
+        '<div class="cl-lines">' + lines + '</div>' +
+      '</div>';
+    }).join('');
+  });
+}
+
+// ============================================================
+// OTA
+// ============================================================
+function updateFwLabel(i) {
+  document.getElementById('fwFileName').textContent = i.files[0] ? i.files[0].name : 'No file chosen';
+}
+function updateFsLabel(i) {
+  document.getElementById('fsFileName').textContent = i.files[0] ? i.files[0].name : 'No file chosen';
+}
+function uploadFirmware() {
+  var file = document.getElementById('fwFile').files[0];
+  if (!file) { toast('Choose a firmware .bin file first', 'error'); return; }
+  _doOtaUpload('/api/v1/ota/firmware', file, 'fwBar', 'fwStatus', 'fwProgress');
+}
+function uploadFilesystem() {
+  var file = document.getElementById('fsFile').files[0];
+  if (!file) { toast('Choose a filesystem .bin file first', 'error'); return; }
+  _doOtaUpload('/api/v1/ota/filesystem', file, 'fsBar', 'fsStatus', 'fsProgress');
+}
+function _doOtaUpload(url, file, barId, statusId, progressId) {
+  if (!confirm('Upload ' + file.name + '? The device will reboot when complete.')) return;
+  document.getElementById(progressId).style.display = 'block';
+  document.getElementById(statusId).textContent = 'Uploading...';
+  document.getElementById(barId).style.width = '0%';
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', url, true);
+  xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+  xhr.upload.onprogress = function(e) {
+    if (e.lengthComputable) {
+      var pct = Math.round((e.loaded/e.total)*100);
+      document.getElementById(barId).style.width = pct + '%';
+      document.getElementById(statusId).textContent = 'Uploading... ' + pct + '%';
+    }
+  };
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      document.getElementById(barId).style.width = '100%';
+      document.getElementById(statusId).textContent = 'Complete! Device is rebooting...';
+      toast('Upload complete — rebooting', 'success');
+      setTimeout(function() { window.location.reload(); }, 15000);
+    } else {
+      document.getElementById(statusId).textContent = 'Upload failed.';
+      document.getElementById(barId).style.background = 'var(--red)';
+      toast('Upload failed', 'error');
+    }
+  };
+  xhr.onerror = function() {
+    document.getElementById(barId).style.width = '100%';
+    document.getElementById(statusId).textContent = 'Complete! Reconnecting in 15s...';
+    toast('Upload complete — reconnecting', 'success');
+    setTimeout(function() { window.location.reload(); }, 15000);
+  };
+  xhr.send(file);
+}
+
+// ============================================================
+// Force poll
+// ============================================================
+function forcePoll() {
+  api('POST', '/api/v1/poll').then(function() {
+    toast('Poll triggered', 'info');
+    setTimeout(loadDashboard, 2000);
+  });
+}
+
+// ============================================================
+// Add device modal
+// ============================================================
+function showAddDevice() {
+  document.getElementById('addModal').classList.add('open');
+}
+function hideAddDevice() {
+  document.getElementById('addModal').classList.remove('open');
+  document.getElementById('add-error').style.display = 'none';
+  ['add-name','add-mac','add-ip'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+}
+function submitAddDevice() {
+  var rawName = document.getElementById('add-name').value.trim();
+  var autoId  = rawName.toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')   // remove special chars
+    .replace(/\s+/g, '_')           // spaces to underscores
+    .replace(/^_+|_+$/g, '')        // trim underscores
+    .substring(0, 20);              // max 20 chars
+  if (!autoId) autoId = 'device_' + Date.now().toString().slice(-6);
+
+  var body = {
+    id:             autoId,
+    name:           document.getElementById('add-name').value.trim(),
+    mac:            document.getElementById('add-mac').value.trim().toUpperCase(),
+    ip:             document.getElementById('add-ip').value.trim(),
+    miss_threshold: 0  // uses global threshold from settings
+  };
+  var err = document.getElementById('add-error');
+  if (!body.id || !body.name || !body.mac || !body.ip) {
+    err.textContent = 'All fields are required';
+    err.style.display = 'block';
+    return;
+  }
+  api('POST', '/api/v1/devices', body).then(function(r) {
+    if (r.ok) {
+      hideAddDevice();
+      toast(body.name + ' added', 'success');
+      loadDevices();
+      // If wizard was active, show resume button
+      var resume = document.getElementById('wizardResume');
+      if (resume && resume.style.display !== 'none') {
+        // Already showing - do nothing
+      } else if (wizardStep === 2) {
+        // Wizard was on step 3 (add devices)
+        if (resume) resume.style.display = 'flex';
+      }
+    } else {
+      err.textContent = r.error || 'Failed to add device';
+      err.style.display = 'block';
+    }
+  });
+}
+
+// ============================================================
+// Network Scanner
+// ============================================================
+function loadScanner() {
+  var el = document.getElementById('scannerList');
+  el.innerHTML = '<div class="loading"></div>';
+  api('GET', '/api/v1/network/scan').then(function(resp) {
+    // Handle both old array format and new object format
+    var devices = Array.isArray(resp) ? resp : (resp.devices || []);
+    var scanReady = resp.scan_ready !== undefined ? resp.scan_ready : true;
+    var scanAge   = resp.scan_age || 0;
+
+    if (!scanReady && devices.length === 0) {
+      el.innerHTML = '<div style="font-size:13px;color:var(--text2);padding:12px 0">' +
+        'Scanning the network... This takes about 5 seconds on first run. ' +
+        '<span style="color:var(--blue);cursor:pointer" onclick="setTimeout(loadScanner,3000)">Auto-refreshing...</span></div>';
+      setTimeout(loadScanner, 3000);
+      return;
+    }
+
+    if (!devices || devices.length === 0) {
+      el.innerHTML = '<div class="empty">No devices found. ' +
+        (scanReady ? 'Try scanning again.' : 'Scan still in progress...') + '</div>';
+      return;
+    }
+    // Sort: tracked first, then likely phones, then rest
+    devices.sort(function(a, b) {
+      if (a.tracked && !b.tracked) return -1;
+      if (!a.tracked && b.tracked) return 1;
+      if (a.likely_phone && !b.likely_phone) return -1;
+      if (!a.likely_phone && b.likely_phone) return 1;
+      return a.ip.localeCompare(b.ip, undefined, {numeric:true});
+    });
+
+    var ageStr = scanAge < 60 ? scanAge + 's ago' : Math.floor(scanAge/60) + 'm ago';
+    // Browser-side Apple OUI detection — first 3 bytes of MAC
+    // Major phone manufacturer OUIs (Apple, Samsung, Google/Pixel, OnePlus, Xiaomi, Huawei)
+    var phoneOuis = [
+      // Apple
+      '84:88:E1','F8:4F:AD','A4:C3:F0','F0:DB:F8','3C:22:FB','DC:A9:04',
+      '78:6C:1C','B8:8D:12','A8:BE:27','24:A0:74','E8:8D:28','70:EC:E4',
+      '3C:2E:F9','8C:85:90','4C:57:CA','AC:BC:32','00:CD:FE','04:E5:36',
+      '18:65:90','28:37:37','34:08:BC','50:EA:D6','64:B0:A6','6C:40:08',
+      '90:B2:1F','BC:52:B7','CC:44:63','D0:81:7A','F4:31:C3','F0:99:BF',
+      'AC:CF:85','B0:BE:83','CC:08:8D','D4:DC:CD','F0:18:98','04:69:F8',
+      // Samsung phones
+      '00:07:AB','00:12:47','00:15:99','00:16:6B','00:16:DB','00:17:C9',
+      '00:18:AF','00:1A:8A','00:1B:98','00:1C:43','00:1D:25','00:1E:7D',
+      '00:1F:CC','00:21:19','00:23:39','00:24:54','00:26:37','38:AA:3C',
+      '50:01:BB','5C:0A:5B','60:6B:BD','6C:2F:2C','78:1F:DB','84:2E:27',
+      '8C:77:12','94:63:D1','98:39:8E','A0:07:98','A8:06:00','B0:47:BF',
+      'BC:20:A4','C4:42:02','CC:07:AB','D0:22:BE','D0:59:E4','E4:40:E2',
+      'F4:42:8F','FC:00:12','FC:A1:3E',
+      // Google Pixel
+      '00:1A:11','3C:5A:B4','54:60:09','6C:AD:F8','8C:8D:28','A4:77:33',
+      'AC:37:43','D4:F5:47','F4:F5:DB',
+      // OnePlus
+      '00:00:00','04:D1:3A','1C:77:F6','34:97:F6','48:8F:5A','78:9F:70',
+      '8C:9A:AD','AC:8A:A9','C8:D3:A3',
+    ];
+    var appleOuis = phoneOuis; // alias for backward compat
+
+    function isLikelyPhone(mac, likelyPhoneFromServer) {
+      if (likelyPhoneFromServer) return true;
+      // Locally administered MAC (randomized) = likely phone
+      var firstByte = parseInt(mac.substring(0, 2), 16);
+      if ((firstByte & 0x02) !== 0) return true;
+      var prefix = mac.substring(0, 8).toUpperCase();
+      for (var i = 0; i < phoneOuis.length; i++) {
+        if (phoneOuis[i].toUpperCase() === prefix) return true;
+      }
+      return false;
+    }
+
+    var html = '<div style="font-size:11px;color:var(--text3);margin-bottom:8px">Last scan: ' + ageStr + ' · ' + devices.length + ' device(s) found</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:8px">';
+    devices.forEach(function(d) {
+      var phone = isLikelyPhone(d.mac, d.likely_phone);
+      var bg    = d.tracked ? 'var(--green-bg)' : phone ? 'var(--blue-bg)' : 'var(--surface)';
+      var border= d.tracked ? 'var(--green)' : phone ? 'var(--blue)' : 'var(--border)';
+      var label = d.tracked
+        ? '<span class="badge badge-green">' + d.tracked_name + '</span>'
+        : phone
+          ? '<span class="badge badge-blue">Likely phone</span>'
+          : '<span class="badge badge-gray">Unknown</span>';
+
+      var addBtn = !d.tracked
+        ? '<button class="btn btn-sm" onclick="prefillDevice(\'' + d.mac + '\',\'' + d.ip + '\')">+ Add</button>'
+        : '<span style="font-size:11px;color:var(--green)">✓ Tracked</span>';
+
+      html += '<div style="background:' + bg + ';border:0.5px solid ' + border + ';border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:13px;font-weight:500">' + d.ip + '</div>' +
+          '<div style="font-size:12px;color:var(--text2);margin-top:2px">' + d.mac + '</div>' +
+        '</div>' +
+        label + '&nbsp;&nbsp;' + addBtn +
+      '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }).catch(function() {
+    el.innerHTML = '<div class="empty">Scan failed. Try again.</div>';
+  });
+}
+
+function prefillDevice(mac, ip) {
+  document.getElementById('add-mac').value = mac;
+  document.getElementById('add-ip').value  = ip;
+  showAddDevice();
+  // Switch to devices tab
+  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('tab-devices').classList.add('active');
+}
+
+// ============================================================
+// RSSI Signal History Chart
+// ============================================================
+var _rssiData = null;
+
+function loadRssiChart() {
+  api('GET', '/api/v1/rssi/history').then(function(data) {
+    var empty = document.getElementById('rssiEmpty');
+    if (!data || data.length < 1) {
+      if (empty) { empty.style.display = 'block'; empty.textContent = 'No signal history yet. Readings collected every 60 seconds.'; }
+      return;
+    }
+    _rssiData = data;
+    if (empty) empty.style.display = 'none';
+    _renderRssiChart();
+  }).catch(function() {
+    var empty = document.getElementById('rssiEmpty');
+    if (empty) { empty.style.display = 'block'; empty.textContent = 'Could not load signal history.'; }
+  });
+}
+
+function _renderRssiChart() {
+  if (!_rssiData) return;
+  var canvas = document.getElementById('rssiCanvas');
+  if (!canvas) return;
+  var w = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
+  if (w < 10) { setTimeout(_renderRssiChart, 150); return; }
+  canvas.width  = w;
+  canvas.height = 160;
+  canvas.style.display = 'block';
+  drawRssiChart(canvas, _rssiData);
+}
+
+function drawRssiChart(canvas, data) {
+  var ctx = canvas.getContext('2d');
+  var W   = canvas.width;
+  var H   = canvas.height;
+
+  var isDark  = document.documentElement.getAttribute('data-theme') === 'dark';
+  var textCol = isDark ? '#a0a09c' : '#6b6b66';
+  var gridCol = isDark ? '#3a3a38' : '#e5e5e2';
+  var lineCol = '#378ADD';
+  var fillCol = isDark ? 'rgba(55,138,221,0.15)' : 'rgba(55,138,221,0.1)';
+
+  var pad = { top:16, right:52, bottom:30, left:58 };
+  var cW  = W - pad.left - pad.right;
+  var cH  = H - pad.top  - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Find min/max RSSI
+  // Fix timestamps - if ts is 0, generate synthetic timestamps
+  var now = Math.floor(Date.now()/1000);
+  data.forEach(function(d, i) {
+    if (!d.ts || d.ts < 1000000) {
+      d.ts = now - (data.length - 1 - i) * 60;
+    }
+  });
+  var rssiVals = data.map(function(d) { return d.rssi; });
+  var minR = Math.min.apply(null, rssiVals) - 5;
+  var maxR = Math.max.apply(null, rssiVals) + 5;
+  minR = Math.min(minR, -90);
+  maxR = Math.max(maxR, -40);
+
+  function xPos(i)    { return pad.left + (i / (data.length - 1)) * cW; }
+  function yPos(rssi) { return pad.top + (1 - (rssi - minR) / (maxR - minR)) * cH; }
+
+  // Grid lines
+  ctx.strokeStyle = gridCol;
+  ctx.lineWidth   = 1;
+  [-40, -55, -70, -85].forEach(function(r) {
+    if (r >= minR && r <= maxR) {
+      var y = yPos(r);
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
+      ctx.fillStyle = textCol;
+      ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(r + ' dB', pad.left - 6, y + 4);
+    }
+  });
+
+  // Quality zones
+  var zones = [
+    { min:-60, max:maxR, col:'rgba(29,158,117,0.08)', label:'Excellent' },
+    { min:-70, max:-60,  col:'rgba(186,117,23,0.08)', label:'Good' },
+    { min:-80, max:-70,  col:'rgba(216,90,48,0.08)',  label:'Fair' },
+    { min:minR,max:-80,  col:'rgba(216,90,48,0.15)',  label:'Poor' }
+  ];
+  zones.forEach(function(z) {
+    var y1 = yPos(Math.min(z.max, maxR));
+    var y2 = yPos(Math.max(z.min, minR));
+    ctx.fillStyle = z.col;
+    ctx.fillRect(pad.left, y1, cW, y2 - y1);
+  });
+
+  // Fill under line
+  ctx.beginPath();
+  ctx.moveTo(xPos(0), yPos(data[0].rssi));
+  data.forEach(function(d, i) { ctx.lineTo(xPos(i), yPos(d.rssi)); });
+  ctx.lineTo(xPos(data.length-1), pad.top + cH);
+  ctx.lineTo(xPos(0), pad.top + cH);
+  ctx.closePath();
+  ctx.fillStyle = fillCol;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle = lineCol;
+  ctx.lineWidth   = 2 * window.devicePixelRatio;
+  ctx.lineJoin    = 'round';
+  data.forEach(function(d, i) {
+    i === 0 ? ctx.moveTo(xPos(i), yPos(d.rssi)) : ctx.lineTo(xPos(i), yPos(d.rssi));
+  });
+  ctx.stroke();
+
+  // Latest value dot
+  var last = data[data.length-1];
+  ctx.beginPath();
+  ctx.arc(xPos(data.length-1), yPos(last.rssi), 4*window.devicePixelRatio, 0, Math.PI*2);
+  ctx.fillStyle = lineCol;
+  ctx.fill();
+
+  // Time labels
+  ctx.fillStyle   = textCol;
+  ctx.font        = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign   = 'center';
+  var labelCount  = Math.min(6, data.length);
+  for (var i = 0; i < labelCount; i++) {
+    var idx = Math.round(i * (data.length-1) / (labelCount-1));
+    var d   = data[idx];
+    if (d.ts) {
+      var dt   = new Date(d.ts * 1000);
+      var hhmm = dt.getHours().toString().padStart(2,'0') + ':' + dt.getMinutes().toString().padStart(2,'0');
+      ctx.fillText(hhmm, xPos(idx), H - 6);
+    }
+  }
+}
+
+// ============================================================
+// Event Timeline
+// ============================================================
+function loadEvents() {
+  api('GET', '/api/v1/events').then(function(events) {
+    var el = document.getElementById('eventsList');
+    if (!events || events.length === 0) {
+      el.innerHTML = '<div class="empty">No events recorded yet.</div>';
+      return;
+    }
+    var sorted = events.slice().reverse();
+    var evColors = {
+      first_arrival:'green', last_departure:'red', person_arrived:'green',
+      person_departed:'red', anyone_home:'green', everyone_away:'red',
+      comm_error:'red', comm_restored:'green', device_added:'blue'
+    };
+
+    // Group by date
+    var groups = {};
+    var groupOrder = [];
+    sorted.forEach(function(ev) {
+      var dateStr = ev.timestamp
+        ? new Date(ev.timestamp * 1000).toLocaleDateString('en-US', {weekday:'short',month:'short',day:'numeric'})
+        : 'Unknown date';
+      if (!groups[dateStr]) { groups[dateStr] = []; groupOrder.push(dateStr); }
+      groups[dateStr].push(ev);
+    });
+
+    var html = '';
+    groupOrder.forEach(function(dateStr) {
+      html += '<div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:8px 0 6px">' + dateStr + '</div>';
+      groups[dateStr].forEach(function(ev) {
+        var col    = evColors[ev.event] || 'gray';
+        var bgVar  = col==='green'?'var(--green-bg)':col==='red'?'var(--red-bg)':col==='blue'?'var(--blue-bg)':'var(--surface2)';
+        var colVar = col==='green'?'var(--green)':col==='red'?'var(--red)':col==='blue'?'var(--blue)':'var(--text2)';
+        var timeStr = ev.timestamp
+          ? new Date(ev.timestamp * 1000).toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'})
+          : '';
+        html += '<div class="event-item">' +
+          '<div class="event-icon" style="background:' + bgVar + ';color:' + colVar + '">●</div>' +
+          '<div class="event-info">' +
+            '<div class="event-name">' + ev.event + '</div>' +
+            '<div class="event-device">' + (ev.device_name || ev.device_id || 'global') + '</div>' +
+          '</div>' +
+          '<div class="event-time">' + timeStr + '</div>' +
+        '</div>';
+      });
+    });
+    el.innerHTML = html;
+  });
+}
+
+// ============================================================
+// Onboarding Wizard
+// ============================================================
+var wizardStep = 0;
+var wizardSteps = [
+  {
+    title: 'Welcome',
+    content: function() {
+      return '<p style="font-size:14px;line-height:1.8;color:var(--text2)">This wizard will walk you through setting up your PresencePlatform device.</p>' +
+        '<div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">' +
+          '<div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:18px">📡</div><div><strong>Detect presence</strong><br><span style="font-size:13px;color:var(--text2)">Monitors phones on your WiFi network</span></div></div>' +
+          '<div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:18px">🏠</div><div><strong>Trigger automations</strong><br><span style="font-size:13px;color:var(--text2)">Sends events to Control4, Home Assistant, and more</span></div></div>' +
+          '<div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:18px">🔒</div><div><strong>Fully local, no subscription</strong><br><span style="font-size:13px;color:var(--text2)">No cloud required — automations run entirely on your local network</span></div></div>' +
+        '</div>';
+    }
+  },
+  {
+    title: 'Security',
+    content: function() {
+      return '<p style="font-size:13px;color:var(--text2);margin-bottom:16px">The default password is <code>changeme</code>. Set a secure password before continuing.</p>' +
+        '<div class="form-row"><label class="form-label">New password</label>' +
+        '<input id="wiz-pass" class="form-input" type="password" placeholder="Minimum 8 characters"></div>' +
+        '<div class="form-row"><label class="form-label">Confirm password</label>' +
+        '<input id="wiz-pass2" class="form-input" type="password" placeholder="Repeat password"></div>' +
+        '<div id="wiz-pass-err" style="display:none;color:var(--red);font-size:12px;margin-top:4px"></div>' +
+        '<p style="font-size:12px;color:var(--text3);margin-top:8px">You can skip this step if you already changed your password.</p>';
+    },
+    validate: function() {
+      var p1 = document.getElementById('wiz-pass').value;
+      var p2 = document.getElementById('wiz-pass2').value;
+      var err = document.getElementById('wiz-pass-err');
+      if (p1 === '') return true; // skip
+      if (p1.length < 8) { err.textContent='Minimum 8 characters'; err.style.display='block'; return false; }
+      if (p1 !== p2) { err.textContent='Passwords do not match'; err.style.display='block'; return false; }
+      // Save password
+      api('POST', '/api/v1/config', { admin_password: p1 }).then(function() {
+        toast('Password updated', 'success');
+      });
+      return true;
+    }
+  },
+  {
+    title: 'MAC Randomization',
+    content: function() {
+      return '<p style="font-size:13px;color:var(--text2);margin-bottom:16px">For reliable detection, each phone must use its real MAC address on this network.</p>' +
+        '<div style="background:var(--surface2);border-radius:8px;padding:14px;margin-bottom:12px">' +
+          '<strong style="font-size:13px">iPhone:</strong><br>' +
+          '<span style="font-size:13px;color:var(--text2)">Settings → Wi-Fi → tap ⓘ next to your network → Private Wi-Fi Address → OFF</span>' +
+        '</div>' +
+        '<div style="background:var(--surface2);border-radius:8px;padding:14px">' +
+          '<strong style="font-size:13px">Android:</strong><br>' +
+          '<span style="font-size:13px;color:var(--text2)">Settings → Network → Wi-Fi → long press your network → Modify → Advanced → MAC address type → Phone MAC</span>' +
+        '</div>' +
+        '<p style="font-size:12px;color:var(--text3);margin-top:12px">After changing this setting, forget and rejoin the network so the router registers the real MAC.</p>';
+    }
+  },
+  {
+    title: 'Add Devices',
+    content: function() {
+      return '<p style="font-size:13px;color:var(--text2);margin-bottom:16px">Use the Network Scanner to find phones and add them to tracking. Or add them manually.</p>' +
+        '<div style="display:flex;flex-direction:column;gap:10px">' +
+          '<button class="btn btn-primary" onclick="wizardGoToScanner()">Open Network Scanner →</button>' +
+          '<button class="btn" onclick="closeWizard();showAddDevice()">Add device manually →</button>' +
+        '</div>' +
+        '<p style="font-size:12px;color:var(--text3);margin-top:12px">Make sure to set a DHCP reservation for each phone in your router so the IP never changes.</p>';
+    }
+  },
+  {
+    title: 'Detection Settings',
+    content: function() {
+      return '<p style="font-size:13px;color:var(--text2);margin-bottom:16px">These defaults work well for most installs.</p>' +
+        '<div style="display:flex;flex-direction:column;gap:10px">' +
+          '<div style="background:var(--surface2);border-radius:8px;padding:12px">' +
+            '<strong style="font-size:13px">Poll interval: 60 seconds</strong><br>' +
+            '<span style="font-size:12px;color:var(--text2)">How often the ESP32 checks for each phone. 60s gives ~10s arrival detection.</span>' +
+          '</div>' +
+          '<div style="background:var(--surface2);border-radius:8px;padding:12px">' +
+            '<strong style="font-size:13px">Miss threshold: 15</strong><br>' +
+            '<span style="font-size:12px;color:var(--text2)">How many missed polls before declaring someone away. 15 × 60s = 12 min departure delay. Prevents false aways from iPhone deep sleep.</span>' +
+          '</div>' +
+        '</div>' +
+        '<p style="font-size:12px;color:var(--text3);margin-top:12px">You can adjust these in Settings → Detection at any time.</p>';
+    }
+  },
+  {
+    title: 'All Done!',
+    content: function() {
+      return '<p style="font-size:14px;line-height:1.8;color:var(--text2)">Your PresencePlatform device is ready.</p>' +
+        '<div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">' +
+          '<div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:18px">✅</div><div><strong>Dashboard</strong><br><span style="font-size:13px;color:var(--text2)">Monitor occupancy and device status in real time</span></div></div>' +
+          '<div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:18px">🤓</div><div><strong>Nerd Facts</strong><br><span style="font-size:13px;color:var(--text2)">Expand any device card for detailed detection diagnostics</span></div></div>' +
+          '<div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:18px">📊</div><div><strong>Health tab</strong><br><span style="font-size:13px;color:var(--text2)">Monitor WiFi signal history and system health</span></div></div>' +
+        '</div>';
+    },
+    isLast: true
+  }
+];
+
+function wizardGoToScanner() {
+  // Hide wizard but don't close — show a resume button
+  document.getElementById('wizardModal').classList.remove('open');
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('tab-devices').classList.add('active');
+  var btns = document.querySelectorAll('.nav-btn');
+  for (var i = 0; i < btns.length; i++) {
+    if (btns[i].textContent.trim() === 'Devices') { btns[i].classList.add('active'); break; }
+  }
+  loadDevices();
+  loadScanner();
+  // Show resume button
+  var resume = document.getElementById('wizardResume');
+  if (resume) resume.style.display = 'flex';
+}
+
+function resumeWizard() {
+  document.getElementById('wizardResume').style.display = 'none';
+  document.getElementById('wizardModal').classList.add('open');
+  // Advance to next step if still on step 3
+  if (wizardStep === 2) { wizardStep = 3; renderWizardStep(); }
+}
+
+function wizardGoToManualAdd() {
+  document.getElementById('wizardModal').classList.remove('open');
+  var resume = document.getElementById('wizardResume');
+  if (resume) resume.style.display = 'flex';
+  showAddDevice();
+}
+
+function showWizard() {
+  wizardStep = 0;
+  renderWizardStep();
+  document.getElementById('wizardModal').classList.add('open');
+}
+
+function closeWizard() {
+  document.getElementById('wizardModal').classList.remove('open');
+}
+
+function renderWizardStep() {
+  var step  = wizardSteps[wizardStep];
+  var total = wizardSteps.length;
+  document.getElementById('wizardTitle').textContent    = step.title;
+  document.getElementById('wizardStepNum').textContent  = wizardStep + 1;
+  document.getElementById('wizardStepTotal').textContent= total;
+  document.getElementById('wizardContent').innerHTML    = step.content();
+  document.getElementById('wizardProgress').style.width = ((wizardStep+1)/total*100) + '%';
+  document.getElementById('wizardBack').style.display   = wizardStep > 0 ? 'block' : 'none';
+  var nextBtn = document.getElementById('wizardNext');
+  nextBtn.textContent = step.isLast ? '✓ Done' : 'Next →';
+}
+
+function wizardNext() {
+  var step = wizardSteps[wizardStep];
+  if (step.validate && !step.validate()) return;
+  if (step.isLast) { closeWizard(); return; }
+  wizardStep++;
+  renderWizardStep();
+}
+
+function wizardBack() {
+  if (wizardStep > 0) { wizardStep--; renderWizardStep(); }
+}
+
+// Auto-show wizard on first login if no devices configured
+function checkFirstRun() {
+  api('GET', '/api/v1/devices').then(function(d) {
+    if (!d || d.length === 0) {
+      setTimeout(showWizard, 500);
+    }
+  });
+}
+
+// ============================================================
+// Boot
+// ============================================================
+initTheme();
+tryAutoLogin();
+</script>
+</body>
+</html>
