@@ -34,28 +34,11 @@ jobs:
           arduino-cli lib install "ArduinoJson@6.21.5"
           arduino-cli lib install "PubSubClient@2.8.0"
 
+          # Copy vendored libraries from repo (exact versions used locally)
           LIBS=~/Arduino/libraries
           mkdir -p $LIBS
-
-          # AsyncTCP by dvarrel (master)
-          curl -sL https://github.com/dvarrel/AsyncTCP/archive/master.zip -o /tmp/AsyncTCP.zip
-          unzip -q /tmp/AsyncTCP.zip -d /tmp/atcp/
-          mv /tmp/atcp/AsyncTCP-master $LIBS/AsyncTCP
-
-          # Do NOT install ESPAsyncTCP - it causes lacamera to think we are on ESP8266
-          # Instead patch the webserver header to force ESP32 path
-          # (will apply after ESPAsyncWebServer is installed below)
-
-          # ESPAsyncWebServer by lacamera (master)
-          curl -sL https://github.com/lacamera/ESPAsyncWebServer/archive/master.zip -o /tmp/ESPAsync.zip
-          unzip -q /tmp/ESPAsync.zip -d /tmp/espa/
-          mv /tmp/espa/ESPAsyncWebServer-master $LIBS/ESPAsyncWebServer
-
-          # Patch webserver header - disable ESP8266 branch so ESP32 path is taken
-          sed -i 's|#ifdef ESP8266|#ifdef FORCE_DISABLE_ESP8266|g'             $LIBS/ESPAsyncWebServer/src/ESPAsyncWebServer.h
-
-          # Patch md5.h for ESP32 core 2.0.x
-          sed -i 's|#include "md5.h"|#include "mbedtls/md5.h"|g'             $LIBS/ESPAsyncWebServer/src/WebAuthentication.cpp
+          cp -r firmware/libraries/AsyncTCP $LIBS/AsyncTCP
+          cp -r firmware/libraries/ESPAsyncWebServer $LIBS/ESPAsyncWebServer
 
           echo "Installed libraries:"
           ls $LIBS/
