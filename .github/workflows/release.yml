@@ -34,33 +34,16 @@ jobs:
           # Standard registry libraries
           arduino-cli lib install "ArduinoJson@6.21.5"
           arduino-cli lib install "PubSubClient@2.8.0"
-
-          # Force-install AsyncTCP and ESPAsyncWebServer directly into Arduino libraries folder
-          # bypassing arduino-cli library manager entirely to avoid version conflicts
-          LIBS=~/Arduino/libraries
-          mkdir -p $LIBS
-
-          # Remove any conflicting versions
-          rm -rf $LIBS/AsyncTCP $LIBS/AsyncTCP-master
-          rm -rf $LIBS/ESPAsyncWebServer $LIBS/ESPAsyncWebServer-master
-          rm -rf $LIBS/ESP_Async_WebServer
-
-          # AsyncTCP for ESP32
-          curl -sL https://github.com/ESP32Async/AsyncTCP/archive/refs/heads/master.zip -o /tmp/AsyncTCP.zip
-          unzip -q /tmp/AsyncTCP.zip -d /tmp/asynctcp_extract/
-          mv /tmp/asynctcp_extract/$(ls /tmp/asynctcp_extract/) $LIBS/AsyncTCP
-
-          # ESPAsyncWebServer for ESP32
-          curl -sL https://github.com/ESP32Async/ESPAsyncWebServer/archive/refs/heads/master.zip -o /tmp/ESPAsyncWebServer.zip
-          unzip -q /tmp/ESPAsyncWebServer.zip -d /tmp/espasync_extract/
-          mv /tmp/espasync_extract/$(ls /tmp/espasync_extract/) $LIBS/ESPAsyncWebServer
-
+          arduino-cli lib install "AsyncTCP"
+          arduino-cli lib install "ESP Async WebServer"
 
           # Patch md5.h for ESP32 core 2.0.x compatibility
-          find $LIBS/ESPAsyncWebServer -name "*.cpp" -o -name "*.h" |             xargs grep -l "md5.h" |             xargs sed -i 's|#include <md5.h>|#include <mbedtls/md5.h>|g; s|#include "md5.h"|#include "mbedtls/md5.h"|g'
+          find ~/Arduino/libraries -name "WebAuthentication.cpp" \
+            -exec sed -i 's|#include <md5.h>|#include <mbedtls/md5.h>|g' {} +
 
           echo "Installed libraries:"
-          ls $LIBS/
+          ls ~/Arduino/libraries/
+
 
       # ── Parse version from tag ────────────────────────────────────────────
       - name: Set version from tag
