@@ -34,16 +34,28 @@ jobs:
           # Standard registry libraries
           arduino-cli lib install "ArduinoJson@6.21.5"
           arduino-cli lib install "PubSubClient@2.8.0"
-          arduino-cli lib install "AsyncTCP"
-          arduino-cli lib install "ESP Async WebServer"
+
+          # Install AsyncTCP and ESPAsyncWebServer directly to libraries folder
+          # Using exact folder names arduino-cli expects
+          LIBS=~/Arduino/libraries
+          mkdir -p $LIBS
+
+          # AsyncTCP by ESP32Async
+          curl -sL https://github.com/ESP32Async/AsyncTCP/archive/refs/tags/v3.3.2.zip -o /tmp/AsyncTCP.zip
+          unzip -q /tmp/AsyncTCP.zip -d /tmp/atcp/
+          mv /tmp/atcp/AsyncTCP-3.3.2 $LIBS/AsyncTCP
+
+          # ESPAsyncWebServer by ESP32Async  
+          curl -sL https://github.com/ESP32Async/ESPAsyncWebServer/archive/refs/tags/v3.6.0.zip -o /tmp/ESPAsync.zip
+          unzip -q /tmp/ESPAsync.zip -d /tmp/espa/
+          mv /tmp/espa/ESPAsyncWebServer-3.6.0 $LIBS/ESP_Async_WebServer
 
           # Patch md5.h for ESP32 core 2.0.x compatibility
-          find ~/Arduino/libraries -name "WebAuthentication.cpp" \
+          find $LIBS -name "WebAuthentication.cpp" \
             -exec sed -i 's|#include <md5.h>|#include <mbedtls/md5.h>|g' {} +
 
           echo "Installed libraries:"
-          ls ~/Arduino/libraries/
-
+          ls $LIBS/
 
       # ── Parse version from tag ────────────────────────────────────────────
       - name: Set version from tag
