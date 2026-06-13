@@ -22,6 +22,7 @@ jobs:
       - name: Install ESP32 board support
         run: |
           arduino-cli config init
+          arduino-cli config set library.enable_unsafe_install true
           arduino-cli config add board_manager.additional_urls \
             https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
           arduino-cli core update-index
@@ -30,9 +31,13 @@ jobs:
       # ── Install libraries ─────────────────────────────────────────────────
       - name: Install required libraries
         run: |
+          # Standard registry libraries
           arduino-cli lib install "ArduinoJson@6.21.5"
           arduino-cli lib install "PubSubClient@2.8.0"
-          # Add any other libraries your firmware depends on here
+
+          # ESPAsyncWebServer + AsyncTCP (not in standard registry, install from GitHub)
+          arduino-cli lib install --git-url https://github.com/me-no-dev/AsyncTCP.git
+          arduino-cli lib install --git-url https://github.com/me-no-dev/ESPAsyncWebServer.git
 
       # ── Parse version from tag ────────────────────────────────────────────
       - name: Set version from tag
@@ -77,14 +82,14 @@ jobs:
         run: |
           VER="${{ steps.version.outputs.version }}"
           TAG="${{ steps.version.outputs.tag }}"
-          BASE_URL="https://github.com/PresencePlatform2026/presenceplatform/releases/download/${TAG}"
+          BASE_URL="https://github.com/PresencePlatform2026/PresencePlatform/releases/download/${TAG}"
 
           cat > firmware/version.json << EOF
           {
             "version": "${VER}",
             "firmware_url": "${BASE_URL}/presenceplatform.bin",
             "fs_url": "${BASE_URL}/presenceplatform.fs.bin",
-            "release_notes_url": "https://github.com/PresencePlatform2026/presenceplatform/releases/tag/${TAG}",
+            "release_notes_url": "https://github.com/PresencePlatform2026/PresencePlatform/releases/tag/${TAG}",
             "min_firmware_for_ota": "2.0.0"
           }
           EOF
@@ -121,7 +126,7 @@ jobs:
 
             ### OTA Update URL
             ```
-            https://raw.githubusercontent.com/PresencePlatform2026/presenceplatform/main/firmware/version.json
+            https://raw.githubusercontent.com/PresencePlatform2026/PresencePlatform/main/firmware/version.json
             ```
           files: |
             firmware/presenceplatform.bin
