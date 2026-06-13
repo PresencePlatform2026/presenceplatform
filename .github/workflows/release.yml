@@ -51,8 +51,7 @@ jobs:
           mv /tmp/espa/ESPAsyncWebServer-3.6.0 $LIBS/ESP_Async_WebServer
 
           # Patch md5.h for ESP32 core 2.0.x compatibility
-          find $LIBS -name "WebAuthentication.cpp" \
-            -exec sed -i 's|#include <md5.h>|#include <mbedtls/md5.h>|g' {} +
+          sed -i 's|#include "md5.h"|#include "mbedtls/md5.h"|g'             $LIBS/ESP_Async_WebServer/src/WebAuthentication.cpp
 
           echo "Installed libraries:"
           ls $LIBS/
