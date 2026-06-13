@@ -37,20 +37,20 @@ jobs:
           LIBS=~/Arduino/libraries
           mkdir -p $LIBS
 
-          # AsyncTCP by dvarrel (master branch, no release tags exist)
-          curl -sL https://github.com/dvarrel/AsyncTCP/archive/refs/heads/master.zip -o /tmp/AsyncTCP.zip
+          # AsyncTCP by dvarrel (master)
+          curl -sL https://github.com/dvarrel/AsyncTCP/archive/master.zip -o /tmp/AsyncTCP.zip
           unzip -q /tmp/AsyncTCP.zip -d /tmp/atcp/
           mv /tmp/atcp/AsyncTCP-master $LIBS/AsyncTCP
 
-          # ESPAsyncTCP by dvarrel (required by lacamera ESPAsyncWebServer)
-          curl -sL https://github.com/dvarrel/ESPAsyncTCP/archive/refs/heads/master.zip -o /tmp/ESPAsyncTCP.zip
+          # ESPAsyncTCP by dvarrel (master)
+          curl -sL https://github.com/dvarrel/ESPAsyncTCP/archive/master.zip -o /tmp/ESPAsyncTCP.zip
           unzip -q /tmp/ESPAsyncTCP.zip -d /tmp/espatcp/
           mv /tmp/espatcp/ESPAsyncTCP-master $LIBS/ESPAsyncTCP
 
-          # ESPAsyncWebServer v3.1.0 by lacamera
-          curl -sL https://github.com/lacamera/ESPAsyncWebServer/archive/refs/tags/v3.1.0.zip -o /tmp/ESPAsync.zip
+          # ESPAsyncWebServer by lacamera (master)
+          curl -sL https://github.com/lacamera/ESPAsyncWebServer/archive/master.zip -o /tmp/ESPAsync.zip
           unzip -q /tmp/ESPAsync.zip -d /tmp/espa/
-          mv /tmp/espa/ESPAsyncWebServer-3.1.0 $LIBS/ESPAsyncWebServer
+          mv /tmp/espa/ESPAsyncWebServer-master $LIBS/ESPAsyncWebServer
 
           echo "Installed libraries:"
           ls $LIBS/
