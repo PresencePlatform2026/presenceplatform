@@ -31,32 +31,26 @@ jobs:
       # ── Install libraries ─────────────────────────────────────────────────
       - name: Install required libraries
         run: |
-          # Standard registry libraries
           arduino-cli lib install "ArduinoJson@6.21.5"
           arduino-cli lib install "PubSubClient@2.8.0"
 
-          # Install AsyncTCP and ESPAsyncWebServer directly to libraries folder
-          # Using exact folder names arduino-cli expects
+          # Install exact forks the firmware was built against
+          # lacamera/ESPAsyncWebServer (ESPHome fork, ESP32 core 2.x compatible)
+          # dvarrel/AsyncTCP
           LIBS=~/Arduino/libraries
           mkdir -p $LIBS
 
-          # AsyncTCP by ESP32Async
-          curl -sL https://github.com/ESP32Async/AsyncTCP/archive/refs/tags/v3.3.2.zip -o /tmp/AsyncTCP.zip
-          unzip -q /tmp/AsyncTCP.zip -d /tmp/atcp/
-          mv /tmp/atcp/AsyncTCP-3.3.2 $LIBS/AsyncTCP
-
-          # ESPAsyncWebServer by ESP32Async  
-          curl -sL https://github.com/ESP32Async/ESPAsyncWebServer/archive/refs/tags/v3.6.0.zip -o /tmp/ESPAsync.zip
+          curl -sL https://github.com/lacamera/ESPAsyncWebServer/archive/refs/heads/master.zip -o /tmp/ESPAsync.zip
           unzip -q /tmp/ESPAsync.zip -d /tmp/espa/
-          mv /tmp/espa/ESPAsyncWebServer-3.6.0 $LIBS/ESP_Async_WebServer
+          mv /tmp/espa/ESPAsyncWebServer-master $LIBS/ESPAsyncWebServer
 
-          # Patch md5.h for ESP32 core 2.0.x compatibility
-          sed -i 's|#include "md5.h"|#include "mbedtls/md5.h"|g'             $LIBS/ESP_Async_WebServer/src/WebAuthentication.cpp
+          curl -sL https://github.com/dvarrel/AsyncTCP/archive/refs/heads/master.zip -o /tmp/AsyncTCP.zip
+          unzip -q /tmp/AsyncTCP.zip -d /tmp/atcp/
+          mv /tmp/atcp/AsyncTCP-master $LIBS/AsyncTCP
 
           echo "Installed libraries:"
           ls $LIBS/
 
-      # ── Verify ESP32 define and AsyncTCP header ─────────────────────────────
       - name: Debug - verify platform and headers
         run: |
           echo "=== ESPAsyncWebServer.h lines 40-55 ==="
