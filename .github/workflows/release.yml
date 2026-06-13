@@ -46,17 +46,15 @@ jobs:
           rm -rf $LIBS/ESP_Async_WebServer
 
           # AsyncTCP for ESP32
-          curl -sL https://github.com/me-no-dev/AsyncTCP/archive/refs/heads/master.zip -o /tmp/AsyncTCP.zip
+          curl -sL https://github.com/ESP32Async/AsyncTCP/archive/refs/heads/master.zip -o /tmp/AsyncTCP.zip
           unzip -q /tmp/AsyncTCP.zip -d /tmp/
           mv /tmp/AsyncTCP-master $LIBS/AsyncTCP
 
           # ESPAsyncWebServer for ESP32
-          curl -sL https://github.com/me-no-dev/ESPAsyncWebServer/archive/refs/heads/master.zip -o /tmp/ESPAsyncWebServer.zip
+          curl -sL https://github.com/ESP32Async/ESPAsyncWebServer/archive/refs/heads/master.zip -o /tmp/ESPAsyncWebServer.zip
           unzip -q /tmp/ESPAsyncWebServer.zip -d /tmp/
           mv /tmp/ESPAsyncWebServer-master $LIBS/ESPAsyncWebServer
 
-          # Patch md5.h issue with ESP32 core 2.x
-          find $LIBS/ESPAsyncWebServer -name "WebAuthentication.cpp" -exec             sed -i 's|#include "md5.h"|#include "mbedtls/md5.h"|g' {} +
 
           echo "Installed libraries:"
           ls $LIBS/
