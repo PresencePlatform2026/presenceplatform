@@ -56,6 +56,9 @@ jobs:
           mv /tmp/espasync_extract/$(ls /tmp/espasync_extract/) $LIBS/ESPAsyncWebServer
 
 
+          # Patch md5.h for ESP32 core 2.0.x compatibility
+          find $LIBS/ESPAsyncWebServer -name "*.cpp" -o -name "*.h" |             xargs grep -l "md5.h" |             xargs sed -i 's|#include <md5.h>|#include <mbedtls/md5.h>|g; s|#include "md5.h"|#include "mbedtls/md5.h"|g'
+
           echo "Installed libraries:"
           ls $LIBS/
 
