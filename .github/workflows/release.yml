@@ -31,8 +31,9 @@ jobs:
       # ── Install libraries ─────────────────────────────────────────────────
       - name: Install required libraries
         run: |
-          arduino-cli lib install "ArduinoJson@7.4.3"
-          arduino-cli lib install "PubSubClient@2.8.0"
+          # All libraries vendored from repo - no registry downloads needed
+          cp -r firmware/libraries/ArduinoJson ~/Arduino/libraries/ArduinoJson
+          cp -r firmware/libraries/PubSubClient ~/Arduino/libraries/PubSubClient
 
           LIBS=~/Arduino/libraries
 
