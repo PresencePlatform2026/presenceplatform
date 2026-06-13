@@ -51,27 +51,6 @@ jobs:
           echo "Installed libraries:"
           ls $LIBS/
 
-      - name: Debug - verify platform and headers
-        run: |
-          echo "=== ESPAsyncWebServer.h lines 40-55 ==="
-          sed -n '40,55p' ~/Arduino/libraries/ESP_Async_WebServer/src/ESPAsyncWebServer.h
-          echo "=== AsyncTCP library.properties ==="
-          cat ~/Arduino/libraries/AsyncTCP/library.properties
-          echo "=== AsyncTCP src files ==="
-          ls ~/Arduino/libraries/AsyncTCP/src/
-          echo "=== Test ESP32 define with minimal sketch ==="
-          mkdir -p /tmp/testsketch
-          cat > /tmp/testsketch/testsketch.ino << 'SKETCH'
-          #ifdef ESP32
-          #include <AsyncTCP.h>
-          void setup() {}
-          void loop() {}
-          #else
-          #error NOT ESP32
-          #endif
-          SKETCH
-          arduino-cli compile --fqbn esp32:esp32:esp32 /tmp/testsketch/ 2>&1 | tail -5
-
       # ── Parse version from tag ────────────────────────────────────────────
       - name: Set version from tag
         id: version
