@@ -42,15 +42,17 @@ jobs:
           unzip -q /tmp/AsyncTCP.zip -d /tmp/atcp/
           mv /tmp/atcp/AsyncTCP-master $LIBS/AsyncTCP
 
-          # ESPAsyncTCP stub - satisfies lacamera dependency declaration without compiling ESP8266 code
-          mkdir -p $LIBS/ESPAsyncTCP/src
-          printf 'name=ESPAsyncTCP\nversion=1.2.4\narchitectures=esp8266\n' > $LIBS/ESPAsyncTCP/library.properties
-          touch $LIBS/ESPAsyncTCP/src/ESPAsyncTCP.h
+          # Do NOT install ESPAsyncTCP - it causes lacamera to think we are on ESP8266
+          # Instead patch the webserver header to force ESP32 path
+          # (will apply after ESPAsyncWebServer is installed below)
 
           # ESPAsyncWebServer by lacamera (master)
           curl -sL https://github.com/lacamera/ESPAsyncWebServer/archive/master.zip -o /tmp/ESPAsync.zip
           unzip -q /tmp/ESPAsync.zip -d /tmp/espa/
           mv /tmp/espa/ESPAsyncWebServer-master $LIBS/ESPAsyncWebServer
+
+          # Patch webserver header - disable ESP8266 branch so ESP32 path is taken
+          sed -i 's|#ifdef ESP8266|#ifdef FORCE_DISABLE_ESP8266|g'             $LIBS/ESPAsyncWebServer/src/ESPAsyncWebServer.h
 
           # Patch md5.h for ESP32 core 2.0.x
           sed -i 's|#include "md5.h"|#include "mbedtls/md5.h"|g'             $LIBS/ESPAsyncWebServer/src/WebAuthentication.cpp
