@@ -44,9 +44,7 @@ jobs:
 
           # ESPAsyncTCP stub - satisfies lacamera dependency declaration without compiling ESP8266 code
           mkdir -p $LIBS/ESPAsyncTCP/src
-          echo 'name=ESPAsyncTCP
-version=1.2.4
-architectures=esp8266' > $LIBS/ESPAsyncTCP/library.properties
+          printf 'name=ESPAsyncTCP\nversion=1.2.4\narchitectures=esp8266\n' > $LIBS/ESPAsyncTCP/library.properties
           touch $LIBS/ESPAsyncTCP/src/ESPAsyncTCP.h
 
           # ESPAsyncWebServer by lacamera (master)
