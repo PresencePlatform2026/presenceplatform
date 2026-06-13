@@ -35,17 +35,26 @@ jobs:
           arduino-cli lib install "ArduinoJson@6.21.5"
           arduino-cli lib install "PubSubClient@2.8.0"
 
-          # AsyncTCP + ESPAsyncWebServer - pinned to known-good versions for ESP32 core 2.0.x
-          # Remove any auto-installed version first
-          rm -rf ~/Arduino/libraries/ESP_Async_WebServer ~/Arduino/libraries/AsyncTCP*
+          # AsyncTCP + ESPAsyncWebServer for ESP32
+          # Clean any previously installed versions
+          rm -rf ~/Arduino/libraries/ESP_Async_WebServer
+          rm -rf ~/Arduino/libraries/AsyncTCP
+          rm -rf ~/Arduino/libraries/ESPAsyncWebServer
 
-          curl -L https://github.com/me-no-dev/AsyncTCP/archive/ca8ac5f919d02bea07b474531981ddbfd64de97c.zip -o /tmp/AsyncTCP.zip
-          curl -L https://github.com/me-no-dev/ESPAsyncWebServer/archive/f71e3d427b5be9791a8a2c93cf8079792c3a9a26.zip -o /tmp/ESPAsyncWebServer.zip
-          arduino-cli lib install --zip-path /tmp/AsyncTCP.zip
+          # Install AsyncTCP (ESP32-specific, not ESPAsyncTCP which is ESP8266)
+          curl -L https://github.com/me-no-dev/AsyncTCP/archive/refs/heads/master.zip -o /tmp/AsyncTCP.zip
+          cd /tmp && unzip -q AsyncTCP.zip && mv AsyncTCP-master AsyncTCP && zip -qr AsyncTCP_fixed.zip AsyncTCP/
+          arduino-cli lib install --zip-path /tmp/AsyncTCP_fixed.zip
+
+          # Install ESPAsyncWebServer
+          curl -L https://github.com/me-no-dev/ESPAsyncWebServer/archive/refs/heads/master.zip -o /tmp/ESPAsyncWebServer.zip
           arduino-cli lib install --zip-path /tmp/ESPAsyncWebServer.zip
 
-          # Patch md5.h issue in ESPAsyncWebServer with ESP32 core 2.x
+          # Patch md5.h issue with ESP32 core 2.x
           find ~/Arduino/libraries -name "WebAuthentication.cpp" -exec             sed -i 's|#include "md5.h"|#include "mbedtls/md5.h"|g' {} +
+
+          # Verify AsyncTCP installed (not ESPAsyncTCP)
+          ls ~/Arduino/libraries/
 
       # ── Parse version from tag ────────────────────────────────────────────
       - name: Set version from tag
