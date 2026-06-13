@@ -1,7 +1,7 @@
 {
-  "version": "2.5.33",
-  "firmware_url": "https://github.com/PresencePlatform2026/PresencePlatform/releases/download/v2.5.33/presenceplatform.bin",
-  "fs_url": "https://github.com/PresencePlatform2026/PresencePlatform/releases/download/v2.5.33/presenceplatform.fs.bin",
-  "release_notes_url": "https://github.com/PresencePlatform2026/PresencePlatform/releases/tag/v2.5.33",
+  "version": "2.5.35",
+  "firmware_url": "https://github.com/PresencePlatform2026/PresencePlatform/releases/download/v2.5.35/presenceplatform.bin",
+  "fs_url": "https://github.com/PresencePlatform2026/PresencePlatform/releases/download/v2.5.35/presenceplatform.fs.bin",
+  "release_notes_url": "https://github.com/PresencePlatform2026/PresencePlatform/releases/tag/v2.5.35",
   "min_firmware_for_ota": "2.0.0"
 }
