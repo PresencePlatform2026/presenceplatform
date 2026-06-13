@@ -79,14 +79,12 @@ jobs:
       # ── Build LittleFS image ──────────────────────────────────────────────
       - name: Build LittleFS filesystem image (.bin)
         run: |
-          # Install mklittlefs
-          pip install esptool
-          wget -q https://github.com/earlephilhower/mklittlefs/releases/download/3.2.0/mklittlefs-3.2.0-linux-amd64.tar.gz
-          tar -xzf mklittlefs-3.2.0-linux-amd64.tar.gz
-          chmod +x mklittlefs
+          # Use mklittlefs bundled with ESP32 board package
+          MKLITTLEFS=$(find ~/.arduino15/packages/esp32 -name "mklittlefs" -type f | head -1)
+          echo "Using mklittlefs: $MKLITTLEFS"
 
           # Build the LittleFS image from the /data folder
-          ./mklittlefs \
+          "$MKLITTLEFS" \
             -c firmware/PresencePlatform/data \
             -p 256 -b 4096 -s 0x160000 \
             firmware/presenceplatform.fs.bin
