@@ -52,6 +52,9 @@ jobs:
           unzip -q /tmp/ESPAsync.zip -d /tmp/espa/
           mv /tmp/espa/ESPAsyncWebServer-master $LIBS/ESPAsyncWebServer
 
+          # Patch md5.h for ESP32 core 2.0.x
+          sed -i 's|#include "md5.h"|#include "mbedtls/md5.h"|g'             $LIBS/ESPAsyncWebServer/src/WebAuthentication.cpp
+
           echo "Installed libraries:"
           ls $LIBS/
 
