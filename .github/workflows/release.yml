@@ -34,19 +34,23 @@ jobs:
           arduino-cli lib install "ArduinoJson@6.21.5"
           arduino-cli lib install "PubSubClient@2.8.0"
 
-          # Install exact forks the firmware was built against
-          # lacamera/ESPAsyncWebServer (ESPHome fork, ESP32 core 2.x compatible)
-          # dvarrel/AsyncTCP
           LIBS=~/Arduino/libraries
           mkdir -p $LIBS
 
-          curl -sL https://github.com/lacamera/ESPAsyncWebServer/archive/refs/heads/master.zip -o /tmp/ESPAsync.zip
-          unzip -q /tmp/ESPAsync.zip -d /tmp/espa/
-          mv /tmp/espa/ESPAsyncWebServer-master $LIBS/ESPAsyncWebServer
-
-          curl -sL https://github.com/dvarrel/AsyncTCP/archive/refs/heads/master.zip -o /tmp/AsyncTCP.zip
+          # AsyncTCP v1.1.4 by dvarrel (exact version used locally)
+          curl -sL https://github.com/dvarrel/AsyncTCP/archive/refs/tags/v1.1.4.zip -o /tmp/AsyncTCP.zip
           unzip -q /tmp/AsyncTCP.zip -d /tmp/atcp/
-          mv /tmp/atcp/AsyncTCP-master $LIBS/AsyncTCP
+          mv /tmp/atcp/AsyncTCP-1.1.4 $LIBS/AsyncTCP
+
+          # ESPAsyncTCP (required by lacamera/ESPAsyncWebServer dependency resolution)
+          curl -sL https://github.com/dvarrel/ESPAsyncTCP/archive/refs/heads/master.zip -o /tmp/ESPAsyncTCP.zip
+          unzip -q /tmp/ESPAsyncTCP.zip -d /tmp/espatcp/
+          mv /tmp/espatcp/ESPAsyncTCP-master $LIBS/ESPAsyncTCP
+
+          # ESPAsyncWebServer v3.1.0 by lacamera (exact version used locally)
+          curl -sL https://github.com/lacamera/ESPAsyncWebServer/archive/refs/tags/v3.1.0.zip -o /tmp/ESPAsync.zip
+          unzip -q /tmp/ESPAsync.zip -d /tmp/espa/
+          mv /tmp/espa/ESPAsyncWebServer-3.1.0 $LIBS/ESPAsyncWebServer
 
           echo "Installed libraries:"
           ls $LIBS/
