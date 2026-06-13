@@ -32,6 +32,7 @@ jobs:
       - name: Install required libraries
         run: |
           # All libraries vendored from repo - no registry downloads needed
+          mkdir -p ~/Arduino/libraries
           cp -r firmware/libraries/ArduinoJson ~/Arduino/libraries/ArduinoJson
           cp -r firmware/libraries/PubSubClient ~/Arduino/libraries/PubSubClient
 
