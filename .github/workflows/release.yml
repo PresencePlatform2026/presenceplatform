@@ -35,9 +35,15 @@ jobs:
           arduino-cli lib install "ArduinoJson@6.21.5"
           arduino-cli lib install "PubSubClient@2.8.0"
 
-          # ESPAsyncWebServer + AsyncTCP (not in standard registry, install from GitHub)
-          arduino-cli lib install --git-url https://github.com/me-no-dev/AsyncTCP.git
-          arduino-cli lib install --git-url https://github.com/esphome/ESPAsyncWebServer.git
+          # AsyncTCP + ESPAsyncWebServer via zip (most reliable with arduino-cli)
+          curl -L https://github.com/me-no-dev/AsyncTCP/archive/refs/heads/master.zip -o /tmp/AsyncTCP.zip
+          curl -L https://github.com/me-no-dev/ESPAsyncWebServer/archive/refs/heads/master.zip -o /tmp/ESPAsyncWebServer.zip
+          arduino-cli lib install --zip-path /tmp/AsyncTCP.zip
+          arduino-cli lib install --zip-path /tmp/ESPAsyncWebServer.zip
+          
+          # Patch md5.h issue in ESPAsyncWebServer with ESP32 core 2.x
+          WEBSERVER_PATH=$(arduino-cli lib list | grep ESPAsyncWebServer | awk '{print $NF}')
+          find ~/Arduino/libraries/ESPAsyncWebServer* -name "WebAuthentication.cpp" -exec             sed -i "s|#include "md5.h"|#include "mbedtls/md5.h"|g" {} \;
 
       # ── Parse version from tag ────────────────────────────────────────────
       - name: Set version from tag
