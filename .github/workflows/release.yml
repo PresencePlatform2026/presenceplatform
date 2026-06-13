@@ -40,6 +40,10 @@ jobs:
           cp -r firmware/libraries/AsyncTCP $LIBS/AsyncTCP
           cp -r firmware/libraries/ESPAsyncWebServer $LIBS/ESPAsyncWebServer
 
+          # Verify the ESP32 check is present in the vendored header
+          echo "=== ESPAsyncWebServer.h lines 20-35 ==="
+          sed -n '20,35p' $LIBS/ESPAsyncWebServer/src/ESPAsyncWebServer.h
+
           echo "Installed libraries:"
           ls $LIBS/
 
